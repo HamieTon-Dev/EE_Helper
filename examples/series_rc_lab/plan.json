@@ -1,0 +1,55 @@
+{
+  "title": "Series RC Circuits",
+  "summary": "Series RC circuits driven by a sine source: reactance versus frequency (Part I), impedance at 500 Hz (Part II) and phase angle / phase lag from oscilloscope timing (Part III).",
+  "assumptions": [
+    "Part I source is 1 Vrms, so AC analysis magnitudes for Part I are RMS values (DMM readings).",
+    "Part II/III source is 1.5 Vp, so AC magnitudes there are peak values (scope readings).",
+    "Ideal resistor and capacitor models."
+  ],
+  "constants": [
+    {"name": "R1", "value": 1000, "unit": "Ω"},
+    {"name": "C1", "value": 1e-7, "unit": "F"},
+    {"name": "R2", "value": 6800, "unit": "Ω"},
+    {"name": "C2", "value": 1e-8, "unit": "F"},
+    {"name": "f2", "value": 500, "unit": "Hz"}
+  ],
+  "netlist": "* Part I: series RC, 1 Vrms\nV1 n1 0 AC 1 SIN(0 1.41421 1k)\nR1 n1 n2 1k\nC1 n2 0 0.1u",
+  "variants": [
+    {"id": "part2", "title": "Part II/III: C = 0.01 uF, R = 6.8 k to ground, 1.5 Vp 500 Hz",
+     "netlist": "* Part II: series RC, 1.5 Vp 500 Hz, resistor to ground\nV1 n1 0 AC 1.5 SIN(0 1.5 500)\nC2 n1 n2 0.01u\nR2 n2 0 6.8k"},
+    {"id": "lag", "title": "Part III: RC lag circuit (output across C)",
+     "netlist": "* Part III: RC lag circuit\nV1 n1 0 AC 1.5 SIN(0 1.5 500)\nR2 n1 n2 6.8k\nC2 n2 0 0.01u"}
+  ],
+  "design_notes": [],
+  "analyses": [
+    {"id": "p1_dmm", "title": "Part I DMM readings at 1 kHz", "variant": null, "kind": "ac_points", "instrument": "multimeter",
+     "signals": ["v(n1,n2)", "v(n2)"], "reference_signal": null, "f_start": null, "f_stop": null, "points_per_decade": null,
+     "frequencies": [1000], "t_step": null, "t_stop": null, "t_start": null, "dc_source": null, "dc_start": null, "dc_stop": null, "dc_step": null,
+     "measurements": []},
+    {"id": "p1_sweep", "title": "Part I readings vs frequency", "variant": null, "kind": "ac_points", "instrument": "table",
+     "signals": ["v(n1,n2)", "v(n2)"], "reference_signal": null, "f_start": null, "f_stop": null, "points_per_decade": null,
+     "frequencies": [300, 1000, 3000, 5000, 7000, 9000, 11000, 13000, 15000], "t_step": null, "t_stop": null, "t_start": null,
+     "dc_source": null, "dc_start": null, "dc_stop": null, "dc_step": null, "measurements": []},
+    {"id": "p2_ac", "title": "Part II phasors at 500 Hz", "variant": "part2", "kind": "ac_points", "instrument": "table",
+     "signals": ["v(n2)", "v(n1,n2)", "v(n1)"], "reference_signal": null, "f_start": null, "f_stop": null, "points_per_decade": null,
+     "frequencies": [500], "t_step": null, "t_stop": null, "t_start": null, "dc_source": null, "dc_start": null, "dc_stop": null, "dc_step": null,
+     "measurements": []},
+    {"id": "p2_scope_vr", "title": "Part II: Channel A across the resistor", "variant": "part2", "kind": "tran", "instrument": "oscilloscope",
+     "signals": ["v(n2)"], "reference_signal": null, "f_start": null, "f_stop": null, "points_per_decade": null, "frequencies": null,
+     "t_step": 2e-06, "t_stop": 0.008, "t_start": 0.004, "dc_source": null, "dc_start": null, "dc_stop": null, "dc_step": null,
+     "measurements": [{"name": "VR peak", "type": "vpk", "signal": "v(n2)", "reference": null, "at": null, "expected": null, "tolerance_pct": null, "unit": "V"},
+                      {"name": "T", "type": "period", "signal": "v(n2)", "reference": null, "at": null, "expected": null, "tolerance_pct": null, "unit": "s"}]},
+    {"id": "p3_phase", "title": "Part III: VR (A) vs VS (B)", "variant": "part2", "kind": "tran", "instrument": "oscilloscope",
+     "signals": ["v(n2)", "v(n1)"], "reference_signal": null, "f_start": null, "f_stop": null, "points_per_decade": null, "frequencies": null,
+     "t_step": 2e-06, "t_stop": 0.008, "t_start": 0.004, "dc_source": null, "dc_start": null, "dc_stop": null, "dc_step": null,
+     "measurements": [{"name": "T", "type": "period", "signal": "v(n1)", "reference": null, "at": null, "expected": null, "tolerance_pct": null, "unit": "s"},
+                      {"name": "dt", "type": "delta_t", "signal": "v(n2)", "reference": "v(n1)", "at": null, "expected": null, "tolerance_pct": null, "unit": "s"},
+                      {"name": "theta", "type": "phase_shift_deg", "signal": "v(n2)", "reference": "v(n1)", "at": null, "expected": 77.94, "tolerance_pct": 2, "unit": "°"}]},
+    {"id": "p3_lag", "title": "Part III: VS (A) vs VC (B), RC lag", "variant": "lag", "kind": "tran", "instrument": "oscilloscope",
+     "signals": ["v(n1)", "v(n2)"], "reference_signal": null, "f_start": null, "f_stop": null, "points_per_decade": null, "frequencies": null,
+     "t_step": 2e-06, "t_stop": 0.008, "t_start": 0.004, "dc_source": null, "dc_start": null, "dc_stop": null, "dc_step": null,
+     "measurements": [{"name": "T", "type": "period", "signal": "v(n1)", "reference": null, "at": null, "expected": null, "tolerance_pct": null, "unit": "s"},
+                      {"name": "dt", "type": "delta_t", "signal": "v(n2)", "reference": "v(n1)", "at": null, "expected": null, "tolerance_pct": null, "unit": "s"},
+                      {"name": "phi", "type": "phase_shift_deg", "signal": "v(n2)", "reference": "v(n1)", "at": null, "expected": -12.06, "tolerance_pct": 3, "unit": "°"}]}
+  ]
+}

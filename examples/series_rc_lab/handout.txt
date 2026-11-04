@@ -1,0 +1,28 @@
+Lab: Series RC Circuits (example handout written for Electrical Engineering Sim Lab)
+
+Objectives: measure capacitive reactance versus frequency, measure the impedance of a
+series RC circuit, and measure phase angle (VR vs VS) and phase lag (VC vs VS) with an
+oscilloscope.
+
+Part I: Capacitive Reactance
+1. Build a series circuit: sine source 1 Vrms, 1 kHz; R1 = 1 kΩ; C1 = 0.1 µF.
+2. Connect one DMM across the resistor and one across the capacitor (AC volts). Record VR and VC in Table 1.
+3. Use Ohm's law to calculate the current: I = VR/R. Record it in Table 1.
+4. Calculate the capacitive reactance using Ohm's law: XC = VC/I. Record it in Table 1.
+5. Calculate the capacitive reactance using XC = 1/(2πfC). Record it in Table 1 as the computed reactance.
+6. Change the source frequency to 300 Hz, 1k, 3k, 5k, 7k, 9k, 11k, 13k and 15 kHz. Record VR and VC, then calculate I and XC both ways (Table 2).
+7. Plot Frequency vs. VC (Plot 1).
+
+Part II: Measuring Impedance
+8. Build the series circuit with C = 0.01 µF and R = 6.8 kΩ (resistor to ground). Source 1.5 Vp, 500 Hz.
+9. Connect Channel A of the oscilloscope across the resistor and measure the peak voltage VR (Table 3). Take a screenshot.
+10. Calculate the peak current I = VR/R (Table 3).
+11. Measure the peak voltage across the capacitor VC (Table 3).
+12. Calculate XC = VC/I, the total impedance ZT = sqrt(R² + XC²) and the phase angle θ = tan⁻¹(XC/R) (Table 3).
+
+Part III: Phase Angle and Phase Lag
+13. Connect Channel A across the resistor and Channel B across the source. Measure the period T and the time difference Δt between the waveforms. Take a screenshot.
+14. Calculate the phase angle θ = (Δt/T) × 360° (Table 4).
+15. Swap R and C so the output is taken across the capacitor (RC lag circuit). Measure T and Δt between VS and VC. Take a screenshot.
+16. Calculate the phase lag ∅ = (Δt/T) × 360° (Table 4).
+17. Plot the impedance phasor diagram for Part II, showing the phase angle (Plot 2).

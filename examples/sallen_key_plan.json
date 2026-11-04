@@ -1,0 +1,38 @@
+{
+  "title": "Sallen-Key 1 kHz low-pass filter",
+  "summary": "Unity-gain 2nd-order Sallen-Key low-pass built around a single-pole op-amp macro-model (GBW 1 MHz). Verifies the corner frequency, passband gain and stop-band attenuation, and shows time-domain behaviour at 500 Hz.",
+  "assumptions": [
+    "Op-amp modelled as a single-pole voltage-controlled source (A0 = 100 dB, GBW = 1 MHz) with a 1 mA quiescent supply draw.",
+    "C2 = 11.25 nF is used instead of 22 nF so that Q = 0.707 with equal resistors (Butterworth)."
+  ],
+  "netlist": "* Sallen-Key low-pass, unity gain\nVCC vcc 0 DC 12\nVEE vee 0 DC -12\nVIN in 0 DC 0 AC 1 SIN(0 1 500)\nR1 in n1 10k\nR2 n1 nplus 10k\nC1 nplus 0 11.25n\nC2 n1 out 22.5n\nXU1 nplus out out vcc vee OPAMP\n.subckt OPAMP inp inn out vcc vee\nRin inp inn 10meg\nEgain int 0 inp inn 100k\nRp int pole 1k\nCp pole 0 15.9u\nEbuf out 0 pole 0 1\nIq vcc vee DC 1m\n.ends OPAMP",
+  "design_notes": ["fc = 1/(2*pi*R*sqrt(C1*C2)) = 1.0 kHz with R=10k, C1=11.25n, C2=22.5n."],
+  "analyses": [
+    {"id": "dc_op", "title": "DC operating point", "kind": "op", "instrument": "multimeter",
+     "signals": ["v(out)", "v(nplus)", "i(VCC)"], "reference_signal": null,
+     "f_start": null, "f_stop": null, "points_per_decade": null, "t_step": null, "t_stop": null, "t_start": null,
+     "dc_source": null, "dc_start": null, "dc_stop": null, "dc_step": null,
+     "measurements": [
+       {"name": "Output DC offset", "type": "dc_value", "signal": "v(out)", "at": null, "expected": 0, "tolerance_pct": 0.01, "unit": "V"},
+       {"name": "Supply current", "type": "dc_value", "signal": "i(VCC)", "at": null, "expected": null, "tolerance_pct": null, "unit": "A"}
+     ]},
+    {"id": "bode_out", "title": "Frequency response", "kind": "ac", "instrument": "bode",
+     "signals": ["v(out)"], "reference_signal": "v(in)",
+     "f_start": 10, "f_stop": 100000, "points_per_decade": 50, "t_step": null, "t_stop": null, "t_start": null,
+     "dc_source": null, "dc_start": null, "dc_stop": null, "dc_step": null,
+     "measurements": [
+       {"name": "Corner frequency", "type": "f_3db", "signal": "v(out)", "at": null, "expected": 1000, "tolerance_pct": 5, "unit": "Hz"},
+       {"name": "Passband gain", "type": "gain_db_at", "signal": "v(out)", "at": 50, "expected": 0, "tolerance_pct": 0.5, "unit": "dB"},
+       {"name": "Gain at 10 kHz", "type": "gain_db_at", "signal": "v(out)", "at": 10000, "expected": -40, "tolerance_pct": 5, "unit": "dB"}
+     ]},
+    {"id": "scope_500hz", "title": "500 Hz sine, input vs output", "kind": "tran", "instrument": "oscilloscope",
+     "signals": ["v(in)", "v(out)"], "reference_signal": null,
+     "f_start": null, "f_stop": null, "points_per_decade": null, "t_step": 5e-06, "t_stop": 0.01, "t_start": 0.002,
+     "dc_source": null, "dc_start": null, "dc_stop": null, "dc_step": null,
+     "measurements": [
+       {"name": "Output amplitude (pk-pk)", "type": "vpp", "signal": "v(out)", "at": null, "expected": 1.94, "tolerance_pct": 5, "unit": "V"},
+       {"name": "Output frequency", "type": "frequency", "signal": "v(out)", "at": null, "expected": 500, "tolerance_pct": 1, "unit": "Hz"},
+       {"name": "Output RMS", "type": "vrms", "signal": "v(out)", "at": null, "expected": null, "tolerance_pct": null, "unit": "V"}
+     ]}
+  ]
+}
