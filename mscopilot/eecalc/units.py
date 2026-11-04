@@ -31,6 +31,13 @@ QUANTITIES: dict[str, tuple[str, list[tuple[str, float]], bool]] = {
     "percent": ("%", [("%", 1.0)], False),
     "turns": ("turns", [("turns", 1.0)], False),
     "number": ("", [("", 1.0)], False),
+    "text": ("", [("", 1.0)], False),  # free text (expressions, colour codes); not converted
+    "energy": ("J", [("J", 1.0), ("mJ", 1e-3), ("kJ", 1e3), ("Wh", 3600.0), ("kWh", 3.6e6)], True),
+    "charge": ("C", [("C", 1.0), ("mC", 1e-3), ("µC", 1e-6), ("Ah", 3600.0), ("mAh", 3.6)], True),
+    "length": ("m", [("m", 1.0), ("mm", 1e-3), ("cm", 1e-2), ("km", 1e3), ("ft", 0.3048), ("in", 0.0254)], True),
+    "area": ("m²", [("mm²", 1e-6), ("m²", 1.0)], False),
+    "resistivity": ("Ω·m", [("Ω·m", 1.0), ("Ω·mm²/m", 1e-6)], False),
+    "temperature": ("°C", [("°C", 1.0)], False),
 }
 
 _PREFIXES = [(1e9, "G"), (1e6, "M"), (1e3, "k"), (1.0, ""), (1e-3, "m"), (1e-6, "µ"), (1e-9, "n"), (1e-12, "p"), (1e-15, "f")]

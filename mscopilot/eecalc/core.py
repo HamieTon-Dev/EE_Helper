@@ -100,6 +100,9 @@ class CalcInput:
         f = self.field(key)
         return f"{f.symbol} ({f.meaning})"
 
+    def text(self, key: str) -> str:
+        return (self.raw.get(key, ("", ""))[0] or "").strip()
+
     def get(self, key: str, default=None):
         v = self.values.get(key)
         return default if v is None else v
@@ -143,6 +146,9 @@ def build_input(calc: Calculator, entries: dict[str, tuple[str, str]], options: 
             values[f.key] = None
             continue
         qty = f.quantity_for(opts)
+        if qty == "text":
+            values[f.key] = None  # read from raw by the calculator
+            continue
         try:
             num = units.parse_number(text)
         except units.UnitError as e:
@@ -250,11 +256,13 @@ def plain_text(calc: Calculator, inp: CalcInput, res: Result, decimals: int = 3,
 # ---------------------------------------------------------------- registry
 REGISTRY: list[Calculator] = []
 CATEGORIES = [
+    "Complex numbers & conversions",
     "Basic electrical",
     "RC and RL filters",
     "RLC and resonance",
     "Transients",
     "AC tools",
+    "Components & practical",
 ]
 
 

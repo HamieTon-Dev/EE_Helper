@@ -61,8 +61,11 @@ class CalculatorPanel(ttk.Frame):
         self.mid_sf.canvas.bind("<Configure>", self._on_mid_resize, add="+")
         self._hints = []
 
-        self.title_lbl = ttk.Label(self.mid, text="", font=(FONT, 13, "bold"))
-        self.title_lbl.pack(anchor="w")
+        head = ttk.Frame(self.mid)
+        head.pack(fill="x")
+        self.title_lbl = ttk.Label(head, text="", font=(FONT, 13, "bold"))
+        self.title_lbl.pack(side="left", anchor="w")
+        ttk.Button(head, text="Prefix chart", command=lambda: open_prefix_chart(self)).pack(side="right")
         self.desc_lbl = ttk.Label(self.mid, text="", foreground=HINT, wraplength=420, justify="left")
         self.desc_lbl.pack(anchor="w", pady=(0, 4))
         bg = ttk.Style(self).lookup("TFrame", "background") or "#f0f0f0"
@@ -284,15 +287,23 @@ class CalculatorPanel(ttk.Frame):
             tv, uv = tk.StringVar(value=text), tk.StringVar(value=unit)
             self.vars[f.key] = (tv, uv)
             ttk.Label(self.form, text=f.symbol, font=(FONT, 10, "bold"), width=6).grid(row=i, column=0, sticky="w", pady=2)
-            e = ttk.Entry(self.form, textvariable=tv, width=13)
-            e.grid(row=i, column=1, sticky="ew", pady=2)
+            if qty == "text":
+                e = ttk.Entry(self.form, textvariable=tv, width=34, font=("Consolas", 10))
+                e.grid(row=i, column=1, columnspan=3, sticky="new", pady=2)
+            else:
+                e = ttk.Entry(self.form, textvariable=tv, width=13)
+                e.grid(row=i, column=1, sticky="ew", pady=2)
             first = first or e
-            if len(unit_choices) > 1 or unit_choices[0]:
+            if qty != "text" and (len(unit_choices) > 1 or unit_choices[0]):
                 ttk.Combobox(self.form, state="readonly", values=unit_choices, textvariable=uv, width=6).grid(
                     row=i, column=2, sticky="w", padx=4)
             meaning = f.meaning + ("  (optional)" if f.optional and "blank" not in f.meaning else "")
             lab = ttk.Label(self.form, text=meaning, foreground=HINT, wraplength=220, justify="left")
-            lab.grid(row=i, column=3, sticky="w", padx=(4, 0))
+            if qty == "text":  # long examples go on their own line under the entry
+                lab.grid(row=i, column=1, columnspan=3, sticky="sw", pady=(26, 0))
+                self.form.rowconfigure(i, minsize=48)
+            else:
+                lab.grid(row=i, column=3, sticky="w", padx=(4, 0))
             self._hints.append(lab)
         self._draw_diagram()
 
@@ -474,6 +485,52 @@ class CalculatorPanel(ttk.Frame):
         if messagebox.askyesno("Clear history", "Remove all calculation history?", parent=self):
             self.store.clear_history()
             self._refresh_lists()
+
+
+def open_prefix_chart(master=None) -> tk.Toplevel:
+    """Pop-out chart of every SI prefix (quecto … quetta) with examples."""
+    from mscopilot.eecalc.conversions import SI_PREFIXES, dec_str
+    from decimal import Decimal
+
+    win = tk.Toplevel(master)
+    win.title("SI prefix chart")
+    win.geometry("900x620")
+    win.minsize(420, 260)
+    top = ttk.Frame(win, padding=8)
+    top.pack(fill="x")
+    ttk.Label(top, text="SI prefixes", font=(FONT, 13, "bold")).pack(side="left")
+    unit = tk.StringVar(value="W")
+    ttk.Label(top, text="   Example unit").pack(side="left")
+    cb = ttk.Combobox(top, values=["W", "V", "A", "Ω", "F", "H", "Hz", "s", "J", "Wh", "VA", "var", "S", "C", "m", "g", "B"],
+                      textvariable=unit, width=6)
+    cb.pack(side="left", padx=4)
+    ttk.Label(top, text="1 unit equals …", foreground=HINT).pack(side="left", padx=8)
+    cols = ("name", "symbol", "power", "multiplier", "example", "in_base")
+    frame, tv = with_scrollbars(win, ttk.Treeview, columns=cols, show="headings")
+    heads = {"name": ("Prefix", 90), "symbol": ("Symbol", 60), "power": ("Power of 10", 90),
+             "multiplier": ("Multiplier", 330), "example": ("Example", 110), "in_base": ("1 base unit =", 330)}
+    for c in cols:
+        tv.heading(c, text=heads[c][0])
+        tv.column(c, width=heads[c][1], minwidth=50, stretch=c in ("multiplier", "in_base"), anchor="w")
+    frame.pack(fill="both", expand=True, padx=8, pady=(0, 8))
+
+    def fill(*_):
+        tv.delete(*tv.get_children())
+        u = unit.get()
+        for name, sym, p in SI_PREFIXES:
+            mult = dec_str(Decimal(1).scaleb(p))
+            inbase = dec_str(Decimal(1).scaleb(-p))
+            tv.insert("", "end", values=(name, sym or "—", f"10^{p}", mult, f"1 {sym}{u}", f"{inbase} {sym}{u}"),
+                      tags=("base",) if p == 0 else ())
+        tv.tag_configure("base", background="#dbeafe")
+
+    cb.bind("<<ComboboxSelected>>", fill)
+    cb.bind("<KeyRelease>", fill)
+    fill()
+    ttk.Label(win, text="Engineering notation uses powers of 1000 (… p, n, µ, m, —, k, M, G, T …). Use the "
+                        "'Unit prefix converter' calculator for exact conversions such as GW → mW.",
+              foreground=HINT, wraplength=860, padding=(8, 0, 8, 8)).pack(anchor="w")
+    return win
 
 
 def open_window(master=None) -> tk.Toplevel | tk.Tk:
