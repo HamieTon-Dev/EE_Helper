@@ -109,7 +109,7 @@ def equivalent_groups(model: DrawingModel) -> list[tuple[str, list[str], float, 
 def default_duration(model: DrawingModel) -> float:
     taus = []
     for c in model.components:
-        if c.kind in "LC" and c.value and None not in c.nodes:
+        if c.kind in ("L", "C") and c.value and None not in c.nodes:
             try:
                 r = S.resistance(without(model, c.id), *c.nodes)
             except S.SolverError:
@@ -118,7 +118,7 @@ def default_duration(model: DrawingModel) -> float:
                 taus.append(r * c.value)
             if c.kind == "L" and 0 < r < math.inf:
                 taus.append(c.value / r)
-    per = [1 / c.src.freq for c in model.components if c.kind in "VI" and c.src and c.src.freq and c.src.wave in ("sine", "square")]
+    per = [1 / c.src.freq for c in model.components if c.kind in ("V", "I") and c.src and c.src.freq and c.src.wave in ("sine", "square")]
     cands = [5 * max(taus)] if taus else []
     if per:
         cands.append(5 * max(per))
@@ -171,7 +171,7 @@ def analyse(model: DrawingModel, settings: SimSettings, run_transient: bool = Tr
                 c.results.append(f"{x.id}: voltage undefined (floating node)")
                 continue
             p = vd * i
-            if x.kind in "VI":
+            if x.kind in ("V", "I"):
                 delivered = -p
                 total_src += delivered
                 c.results.append(f"{x.id}: I = {A(-i if x.kind == 'V' else i)} out of its + terminal, delivers {W(delivered)}")
@@ -191,7 +191,7 @@ def analyse(model: DrawingModel, settings: SimSettings, run_transient: bool = Tr
 
     # ---------------- equivalents
     groups = equivalent_groups(model)
-    srcs = [x for x in model.components if x.kind in "VI"]
+    srcs = [x for x in model.components if x.kind in ("V", "I")]
     c = Calculation("Equivalent values", "Series/parallel reduction and ohmmeter-style network solve")
     for kind, ids, eq, k in groups:
         unit = {"R": "resistance", "L": "inductance", "C": "capacitance"}[k]
@@ -209,7 +209,7 @@ def analyse(model: DrawingModel, settings: SimSettings, run_transient: bool = Tr
         calcs.append(c)
 
     # ---------------- time constants
-    react = [x for x in model.components if x.kind in "LC"]
+    react = [x for x in model.components if x.kind in ("L", "C")]
     if react:
         c = Calculation("Time constants", "Thevenin resistance seen by each energy-storage element (sources de-energised)")
         for x in react:
@@ -356,7 +356,9 @@ def _auto_output(model: DrawingModel) -> str | None:
 
 
 def _val(c) -> str:
-    if c.kind in "RLC":
+    if c.kind == "SW":
+        return f"switch {c.state or '(state unknown)'}"
+    if c.kind in ("R", "L", "C"):
         unit = {"R": "resistance", "L": "inductance", "C": "capacitance"}[c.kind]
         return fmt(c.value, unit, 4) if c.value is not None else "(no value)"
     s = c.src
@@ -373,7 +375,7 @@ def describe(model: DrawingModel) -> list[str]:
     if model.drawing_type not in ("electrical_schematic", "unknown"):
         return [f"Drawing type: {model.drawing_type}. Only dimensions and scaled measurements are interpreted."]
     lines = []
-    srcs = [c for c in model.components if c.kind in "VI"]
+    srcs = [c for c in model.components if c.kind in ("V", "I")]
     rs = [c for c in model.components if c.kind == "R"]
     ls = [c for c in model.components if c.kind == "L"]
     cs = [c for c in model.components if c.kind == "C"]

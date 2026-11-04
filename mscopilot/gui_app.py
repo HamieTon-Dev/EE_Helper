@@ -223,6 +223,10 @@ class App(tk.Tk):
         self.main_tabs.add(calc_tab, text="EE Calculator")
         self._calc_tab = calc_tab
         self.calculator = None
+        draw_tab = ttk.Frame(self.main_tabs)
+        self.main_tabs.add(draw_tab, text="Drawing analysis & schematic")
+        self._draw_tab = draw_tab
+        self.drawing = None
         self.main_tabs.bind("<<NotebookTabChanged>>", self._on_main_tab)
 
         panes = ttk.PanedWindow(sim_tab, orient="horizontal")
@@ -285,11 +289,21 @@ class App(tk.Tk):
         self.progress.pack(fill="x", side="bottom", padx=12)
 
     def _on_main_tab(self, _e=None):
-        if self.main_tabs.index("current") == 1 and self.calculator is None:
+        idx = self.main_tabs.index("current")
+        if idx == 1 and self.calculator is None:
             from mscopilot.calc_gui import CalculatorPanel
 
             self.calculator = CalculatorPanel(self._calc_tab)  # built on first use: keeps start-up fast
             self.calculator.pack(fill="both", expand=True)
+        if idx == 2 and self.drawing is None:
+            from mscopilot.drawing_gui import DrawingWorkspace
+
+            self.drawing = DrawingWorkspace(self._draw_tab, self.settings)
+            self.drawing.pack(fill="both", expand=True)
+
+    def show_drawing(self):
+        self.main_tabs.select(2)
+        self._on_main_tab()
 
     def show_calculator(self):
         self.main_tabs.select(1)
@@ -473,5 +487,7 @@ def launch(tab: str = "") -> int:
     app = App()
     if tab == "calc":
         app.after(50, app.show_calculator)
+    elif tab == "drawing":
+        app.after(50, app.show_drawing)
     app.mainloop()
     return 0

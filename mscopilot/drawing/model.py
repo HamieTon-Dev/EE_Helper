@@ -18,10 +18,11 @@ SUPPORTED_KINDS = {
     "L": ("Inductor", "H"),
     "V": ("Voltage source", "V"),
     "I": ("Current source", "A"),
+    "SW": ("Switch", ""),
 }
 # recognised but not simulated: analysis refuses circuits containing them
 UNSUPPORTED_KINDS = {
-    "D": "Diode", "LED": "LED", "Q": "Transistor", "M": "MOSFET", "U": "IC / op-amp", "SW": "Switch",
+    "D": "Diode", "LED": "LED", "Q": "Transistor", "M": "MOSFET", "U": "IC / op-amp",
     "F": "Fuse", "T": "Transformer", "LAMP": "Lamp", "MOTOR": "Motor", "X": "Unknown symbol",
 }
 WAVES = ("dc", "sine", "square", "step")
@@ -62,6 +63,9 @@ class Component:
     rating_voltage: float | None = None  # V
     rating_current: float | None = None  # A
     src: SourceParams | None = None  # only for V / I
+    state: str = ""  # switches: 'open' | 'closed'
+    catalog: str = ""  # catalog part number / description it was placed from
+    rotation: int = 0  # editor: 0, 90, 180, 270
     notes: str = ""
 
     @property
@@ -269,7 +273,7 @@ class DrawingModel:
         data = {
             "components": sorted(
                 [(c.id, c.kind, c.value, list(c.nodes), c.polarized, c.rating_power, c.rating_voltage, c.rating_current,
-                  asdict(c.src) if c.src else None) for c in self.components], key=lambda t: t[0]),
+                  asdict(c.src) if c.src else None, c.state) for c in self.components], key=lambda t: t[0]),
             "ground": sorted(self.ground_nodes()),
             "junctions": sorted((j.id, j.kind) for j in self.junctions),
         }
@@ -288,7 +292,13 @@ class DrawingModel:
             if not c.supported:
                 lines.append(f"* unsupported: {c.id} ({c.kind_name()}) between {nn(c.nodes[0])} and {nn(c.nodes[1])}")
                 continue
-            name = c.id if c.id[:1].upper() == c.kind else f"{c.kind}{c.id}"
+            name = c.id if c.id[:1].upper() == c.kind[:1] else f"{c.kind[:1]}{c.id}"
+            if c.kind == "SW":
+                if c.state == "closed":
+                    lines.append(f"V{c.id} {nn(c.nodes[0])} {nn(c.nodes[1])} DC 0 ; closed switch {c.id}")
+                else:
+                    lines.append(f"* {c.id}: open switch (no connection)")
+                continue
             if c.kind in "RLC":
                 val = "?" if c.value is None else f"{c.value:.6g}"
                 lines.append(f"{name} {nn(c.nodes[0])} {nn(c.nodes[1])} {val}")

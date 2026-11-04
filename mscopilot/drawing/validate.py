@@ -106,7 +106,7 @@ def static_checks(model: DrawingModel) -> list[Finding]:
                         cause="At least one terminal is not attached to any node.",
                         effect="The circuit is open at this component.", fix="Connect the terminal to the correct node.",
                         points=pts, rule="unconnected"))
-        elif c.nodes[0] == c.nodes[1]:
+        elif len(c.nodes) == 2 and c.nodes[0] == c.nodes[1]:
             sev = "problem"
             if c.kind == "V":
                 add(Finding(sev, f"Voltage source {c.id} is short-circuited", [("component", c.id)],
@@ -117,7 +117,7 @@ def static_checks(model: DrawingModel) -> list[Finding]:
                 add(Finding(sev, f"{c.id} is shorted (both ends on one node)", [("component", c.id)],
                             cause="A wire connects both terminals.", effect=f"{c.id} carries no current and has no effect.",
                             fix="Remove the bypass wire or the component.", points=pts, rule="short"))
-        if c.supported and c.kind in "RLC":
+        if c.supported and c.kind in ("R", "L", "C"):
             if c.value is None:
                 add(Finding("missing", f"{c.id}: value missing", [("component", c.id)],
                             cause=f"No readable {c.kind_name().lower()} value ({c.value_text or 'nothing printed'}).",
@@ -135,7 +135,12 @@ def static_checks(model: DrawingModel) -> list[Finding]:
                                 cause=f"'{c.value_text}' read with {c.value_confidence:.0%} confidence.",
                                 effect="A misread value changes every result that uses it.", fix="Confirm or correct the value.",
                                 points=pts, rule="value"))
-        if c.supported and c.kind in "VI":
+        if c.kind == "SW" and c.state not in ("open", "closed"):
+            add(Finding("missing", f"{c.id}: switch position unknown", [("component", c.id)],
+                        cause="The drawing does not say whether the switch is open or closed.",
+                        effect="The circuit differs completely between the two positions.",
+                        fix="Set the switch state (open or closed).", points=pts, rule="source"))
+        if c.supported and c.kind in ("V", "I"):
             s = c.src
             ok = s is not None and ((s.wave in ("dc", "step") and s.dc is not None) or (s.wave in ("sine", "square") and s.amp is not None and s.freq))
             if not ok:
@@ -189,11 +194,13 @@ def static_checks(model: DrawingModel) -> list[Finding]:
     if gnd:
         adj: dict[str, set] = {}
         for c in model.components:
-            if None in c.nodes:
-                continue
-            a, b = c.nodes
-            adj.setdefault(a, set()).add(b)
-            adj.setdefault(b, set()).add(a)
+            ns = [n for n in c.nodes if n]
+            for a in ns:  # every terminal of a part is (topologically) linked to its others
+                for b in ns:
+                    if a != b:
+                        adj.setdefault(a, set()).add(b)
+            for a in ns:
+                adj.setdefault(a, set())
         seen = set(gnd)
         stack = list(gnd)
         while stack:
@@ -212,7 +219,7 @@ def static_checks(model: DrawingModel) -> list[Finding]:
         # DC path check (capacitor-isolated nodes)
         dc_adj: dict[str, set] = {}
         for c in model.components:
-            if None in c.nodes or c.kind not in ("R", "L", "V"):
+            if None in c.nodes or c.kind not in ("R", "L", "V") or len(c.nodes) != 2:
                 continue
             a, b = c.nodes
             dc_adj.setdefault(a, set()).add(b)
@@ -241,7 +248,7 @@ def static_checks(model: DrawingModel) -> list[Finding]:
 
     loop_seen = set()
     for c in model.components:
-        if c.kind in ("V", "L") and None not in c.nodes and c.nodes[0] != c.nodes[1]:
+        if c.kind in ("V", "L") and len(c.nodes) == 2 and None not in c.nodes and c.nodes[0] != c.nodes[1]:
             a, b = find(c.nodes[0]), find(c.nodes[1])
             if a == b and any(x.kind == "V" for x in model.components if x.kind == "V"):
                 if c.id not in loop_seen:

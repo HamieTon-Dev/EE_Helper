@@ -6,6 +6,7 @@ matplotlib>=3.8
 numpy>=2.0
 markdown>=3.5
 Pillow>=10.0
+pypdfium2>=4.20
 keyring>=24.0
 # Windows-only: Multisim GUI automation + screenshots
 pywinauto>=0.6.8; sys_platform == "win32"

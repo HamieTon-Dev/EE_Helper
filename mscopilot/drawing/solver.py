@@ -37,6 +37,7 @@ class Circuit:
     comps: list[Component]
     idx: dict[str, int] = field(default_factory=dict)
     branch: dict[str, int] = field(default_factory=dict)  # component id -> branch-current unknown
+    open_switches: list[str] = field(default_factory=list)
 
     def n(self, nid: str | None) -> int:
         """Matrix index of a node, -1 for the reference."""
@@ -65,7 +66,7 @@ def build(model: DrawingModel) -> Circuit:
             raise SolverError(f"{c.id} has no value. Enter its {c.kind_name().lower()} value.")
         if c.kind in "RLC" and c.value <= 0:
             raise SolverError(f"{c.id} must have a positive value (got {c.value:g}).")
-        if c.kind in "VI":
+        if c.kind in ("V", "I"):
             s = c.src
             if s is None or (s.wave in ("dc", "step") and s.dc is None) or (s.wave in ("sine", "square") and (s.amp is None or not s.freq)):
                 raise SolverError(f"{c.id}: the source value is missing. Set its waveform and amplitude "
@@ -73,12 +74,20 @@ def build(model: DrawingModel) -> Circuit:
     ref = gnd[0]
     # all ground-flagged nodes are the same node electrically
     comps = []
+    open_sw = []
     for c in model.components:
         cc = Component(**{k: getattr(c, k) for k in Component.__dataclass_fields__})
         cc.nodes = [ref if n in gnd else n for n in c.nodes]
+        if c.kind == "SW":
+            if c.state != "closed":
+                open_sw.append(c.id)
+                continue
+            from mscopilot.drawing.model import SourceParams
+
+            cc.kind, cc.src = "V", SourceParams("dc", dc=0.0)  # closed switch = ideal 0 V branch (short)
         comps.append(cc)
     used = sorted({n for c in comps for n in c.nodes if n != ref})
-    cir = Circuit(used, ref, comps)
+    cir = Circuit(used, ref, comps, open_switches=open_sw)
     cir.idx = {nid: i for i, nid in enumerate(used)}
     k = len(used)
     for c in comps:
@@ -260,9 +269,13 @@ def dc_op(model: DrawingModel) -> Solution:
             cur[c.id] = 0.0
         else:
             cur[c.id] = src_dc(c)
+    for sid in cir.open_switches:
+        cur[sid] = 0.0
     # map grounded aliases back so every model node has a voltage
     for gid in model.ground_nodes():
         v[gid] = 0.0
+    for nid in model.node_ids():  # nodes only touched by open switches
+        v.setdefault(nid, math.nan)
     return Solution("dc", v, cur, 0.0, sorted(floating))
 
 
@@ -299,8 +312,12 @@ def ac(model: DrawingModel, f: float) -> Solution:
             cur[c.id] = complex(x[cir.branch[c.id]])
         else:
             cur[c.id] = src_phasor(c, f)
+    for sid in cir.open_switches:
+        cur[sid] = 0j
     for gid in model.ground_nodes():
         v[gid] = 0j
+    for nid in model.node_ids():
+        v.setdefault(nid, complex(math.nan, math.nan))
     return Solution("ac", v, cur, f)
 
 
@@ -458,6 +475,10 @@ def transient(model: DrawingModel, t_stop: float, steps: int = 4000, initial: st
     V[cir.ref] = np.zeros(steps + 1)
     for gid in model.ground_nodes():
         V[gid] = V[cir.ref]
+    for sid in cir.open_switches:
+        I[sid] = np.zeros(steps + 1)
+    for nid in model.node_ids():
+        V.setdefault(nid, np.full(steps + 1, np.nan))
     return TransientResult(ts, V, I, initial, dt)
 
 
@@ -478,7 +499,7 @@ def resistance(model: DrawingModel, a: str, b: str) -> float:
         if None in c.nodes:
             continue
         n0, n1 = c.nodes
-        if c.kind in ("V", "L"):
+        if c.kind in ("V", "L") or (c.kind == "SW" and c.state == "closed"):
             shorts.append((n0, n1))
         elif c.kind == "R":
             if c.value is None or c.value <= 0:

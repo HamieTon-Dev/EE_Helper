@@ -142,6 +142,9 @@ def build_parser() -> argparse.ArgumentParser:
     c = sub.add_parser("calc", help="open the app on the EE Calculator tab")
     c.set_defaults(func=lambda a: __import__("mscopilot.gui_app", fromlist=["launch"]).launch("calc"))
 
+    dw = sub.add_parser("drawing", help="open the app on the Drawing analysis & schematic tab")
+    dw.set_defaults(func=lambda a: __import__("mscopilot.gui_app", fromlist=["launch"]).launch("drawing"))
+
     d = sub.add_parser("doctor", help="check tools, API key and Multisim connectivity")
     d.add_argument("--connect", action="store_true", help="connect to Multisim and list its Automation API")
     d.add_argument("--circuit", help="open this .ms14 before listing (shows circuit-level members)")
