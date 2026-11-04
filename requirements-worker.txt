@@ -1,0 +1,2 @@
+# 32-bit Multisim COM worker (built separately with 32-bit Python)
+pywin32>=306

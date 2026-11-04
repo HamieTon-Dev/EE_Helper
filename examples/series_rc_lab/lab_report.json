@@ -1,0 +1,496 @@
+{
+  "title": "Series RC Circuits",
+  "abstract": "In this lab I examined how frequency affects capacitive reactance and impedance in a series RC circuit, and measured the phase relationships between the source, resistor and capacitor voltages. With a 1 kΩ resistor and a 0.1 µF capacitor at 1 kHz, the measured reactance was {{mag('p1_dmm','v(n2)')/(mag('p1_dmm','v(n1,n2)')/R1) | Ω | .2f}} against a computed {{1/(2*pi*1000*C1) | Ω | .2f}}. With 6.8 kΩ and 0.01 µF at 500 Hz the impedance was {{sqrt(R2**2 + (mag('p2_ac','v(n1,n2)')/(mag('p2_ac','v(n2)')/R2))**2) | Ω | eng3}}, the current led the source by {{meas('p3_phase','theta') | ° | .2f}} and the capacitor voltage lagged the source by {{abs(meas('p3_lag','phi')) | ° | .2f}}.",
+  "introduction": "The purpose of this lab was to analyze series RC circuits driven by a sinusoidal source. A capacitor's opposition to alternating current is its capacitive reactance, XC = 1/(2πfC), so as frequency increases the reactance decreases.\n\nIn a series circuit the same current flows through every component, so the current can be found from the resistor voltage, I = VR/R, and the reactance from XC = VC/I. The impedance magnitude is |Z| = √(R² + XC²) and the phase angle is θ = tan⁻¹(XC/R).\n\nBecause the resistor voltage is in phase with the current, it can be used as the current reference on an oscilloscope. The current leads the source voltage by θ, and the capacitor voltage lags the source by 90° − θ.",
+  "procedures": "Part I: I built a series RC circuit in Multisim with a 1 kΩ resistor, a 0.1 µF capacitor and a 1 Vrms, 1 kHz sine source. I placed one multimeter across the resistor and one across the capacitor, both on AC volts, recorded the readings, and calculated the current and the reactance. I then repeated the readings from 300 Hz to 15 kHz and graphed the capacitor voltage against frequency.\n\nPart II: I rebuilt the circuit with a 6.8 kΩ resistor and a 0.01 µF capacitor and set the source to 1.5 Vp at 500 Hz. I measured the peak resistor and capacitor voltages with the oscilloscope and calculated the current, reactance, impedance and phase angle.\n\nPart III: I measured the period of the source and the time difference between the resistor and source waveforms to find the phase angle, then swapped the components to make an RC lag circuit and measured the phase lag of the capacitor voltage.",
+  "parts": [
+    {
+      "heading": "Part I: Capacitive Reactance",
+      "steps": [
+        {
+          "text": "**Connect** the series RC circuit: 1 Vrms, 1 kHz sine source, R1 = 1 kΩ, C1 = 0.1 µF.",
+          "sub_steps": [],
+          "equation": null,
+          "figure_source": "analysis:p1_dmm",
+          "figure_caption": "RC Circuit DMM readings"
+        },
+        {
+          "text": "**Connect** one DMM across the resistor and one DMM across the capacitor, set to AC voltage. **Measure** the voltage across each component and **record** the result in **Table 1**.",
+          "sub_steps": [],
+          "equation": null,
+          "figure_source": null,
+          "figure_caption": null
+        },
+        {
+          "text": "Use Ohm's law to **calculate** the current flowing through the resistor. **Record** the result in **Table 1**.",
+          "sub_steps": [],
+          "equation": "Total current, I = {{mag('p1_dmm','v(n1,n2)')/R1 | A | eng3}}",
+          "figure_source": null,
+          "figure_caption": null
+        },
+        {
+          "text": "**Calculate** the capacitive reactance using Ohm's law. **Record** the result in **Table 1**.",
+          "sub_steps": [],
+          "equation": "Capacitive Reactance, XC = {{mag('p1_dmm','v(n2)')/(mag('p1_dmm','v(n1,n2)')/R1) | Ω | .2f}}",
+          "figure_source": null,
+          "figure_caption": null
+        },
+        {
+          "text": "**Calculate** the capacitive reactance using XC = 1/(2πfC). **Record** the result in **Table 1** under Computed Reactance.",
+          "sub_steps": [],
+          "equation": "Capacitive Reactance, XC = {{1/(2*pi*1000*C1) | Ω | .2f}}",
+          "figure_source": null,
+          "figure_caption": null
+        },
+        {
+          "text": "**Adjust** the source frequency following **Table 2** and **measure** the voltage across the resistor and the capacitor at each frequency.",
+          "sub_steps": [],
+          "equation": null,
+          "figure_source": null,
+          "figure_caption": null
+        },
+        {
+          "text": "**Plot** the graph for **Frequency vs. VC**.",
+          "sub_steps": [],
+          "equation": null,
+          "figure_source": null,
+          "figure_caption": null
+        }
+      ]
+    },
+    {
+      "heading": "Part II: Measuring Impedance (Z)",
+      "steps": [
+        {
+          "text": "**Build** the series RC circuit with C = 0.01 µF and R = 6.8 kΩ. **Set** the source to **1.5 Vp** and **500 Hz**.",
+          "sub_steps": [],
+          "equation": null,
+          "figure_source": null,
+          "figure_caption": null
+        },
+        {
+          "text": "**Connect** Channel A of the oscilloscope across the resistor and **measure** the peak voltage drop (VR). **Record** the result in **Table 3**.",
+          "sub_steps": [],
+          "equation": null,
+          "figure_source": null,
+          "figure_caption": null
+        },
+        {
+          "text": "Use Ohm's law to **calculate** the peak current. **Record** the result in **Table 3**.",
+          "sub_steps": [],
+          "equation": "Total current I = {{meas('p2_scope_vr','VR peak')/R2 | A | eng3}}",
+          "figure_source": null,
+          "figure_caption": null
+        },
+        {
+          "text": "**Measure** the peak voltage across the capacitor (VC), then **calculate** XC, ZT and θ. **Record** the results in **Table 3**.",
+          "sub_steps": [],
+          "equation": "Phase angle, θ = tan⁻¹(XC/R) = {{degrees(atan(mag('p2_ac','v(n1,n2)')/(mag('p2_ac','v(n2)')/R2)/R2)) | ° | .2f}}",
+          "figure_source": null,
+          "figure_caption": null
+        }
+      ]
+    },
+    {
+      "heading": "Part III: Phase Angle and Phase Lag Measurement",
+      "steps": [
+        {
+          "text": "**Connect** Channel A across the resistor and Channel B across the source and run the simulation.",
+          "sub_steps": [],
+          "equation": null,
+          "figure_source": null,
+          "figure_caption": null
+        },
+        {
+          "text": "**Measure** the period (T) of the source voltage and the time difference (∆t) between the two signals using the cursors. **Record** them in **Table 4**.",
+          "sub_steps": [],
+          "equation": "Phase angle, θ = (∆t/T) × 360°",
+          "figure_source": null,
+          "figure_caption": null
+        },
+        {
+          "text": "**Connect** the RC lag circuit (output across the capacitor) and **measure** T and ∆t between VS and VC.",
+          "sub_steps": [
+            "Set both channels to similar on-screen amplitudes.",
+            "Spread the signals with the timebase until both are just visible.",
+            "Measure ∆t with the cursors and record it in Table 4."
+          ],
+          "equation": "Phase lag, ∅ = (∆t/T) × 360°",
+          "figure_source": null,
+          "figure_caption": null
+        },
+        {
+          "text": "**Plot** the impedance phasor diagram, indicating the phase angle.",
+          "sub_steps": [],
+          "equation": null,
+          "figure_source": null,
+          "figure_caption": null
+        }
+      ]
+    }
+  ],
+  "data": [
+    {
+      "type": "table",
+      "caption": "Calculated and measured values",
+      "header_rows": [
+        [
+          "",
+          "Capacitor C1"
+        ]
+      ],
+      "rows": [
+        [
+          "Voltage across, R",
+          "=mag('p1_dmm','v(n1,n2)') | V | eng3"
+        ],
+        [
+          "Voltage across, C",
+          "=mag('p1_dmm','v(n2)') | V | eng3"
+        ],
+        [
+          "Total Current, I",
+          "=mag('p1_dmm','v(n1,n2)')/R1 | A | eng3"
+        ],
+        [
+          "Capacitive Reactance, XC",
+          "=mag('p1_dmm','v(n2)')/(mag('p1_dmm','v(n1,n2)')/R1) | Ω | .2f"
+        ],
+        [
+          "Computed Reactance, XC",
+          "=1/(2*pi*1000*C1) | Ω | .2f"
+        ]
+      ],
+      "plot": null
+    },
+    {
+      "type": "table",
+      "caption": "Calculated and measured values",
+      "header_rows": [
+        [
+          "Frequency (Hz)",
+          "VR (measured, Vrms)",
+          "VC (measured, Vrms)",
+          "I = VR/R (calculated, mA)",
+          "XC = VC/I (calculated, Ω)",
+          "XC = 1/(2πfC) (calculated, Ω)"
+        ]
+      ],
+      "rows": [
+        [
+          "300",
+          "=mag('p1_sweep','v(n1,n2)',300) | | .4f",
+          "=mag('p1_sweep','v(n2)',300) | | .4f",
+          "=mag('p1_sweep','v(n1,n2)',300)/R1*1000 | | .4f",
+          "=mag('p1_sweep','v(n2)',300)/(mag('p1_sweep','v(n1,n2)',300)/R1) | | .2f",
+          "=1/(2*pi*300*C1) | | .2f"
+        ],
+        [
+          "1k",
+          "=mag('p1_sweep','v(n1,n2)',1000) | | .4f",
+          "=mag('p1_sweep','v(n2)',1000) | | .4f",
+          "=mag('p1_sweep','v(n1,n2)',1000)/R1*1000 | | .4f",
+          "=mag('p1_sweep','v(n2)',1000)/(mag('p1_sweep','v(n1,n2)',1000)/R1) | | .2f",
+          "=1/(2*pi*1000*C1) | | .2f"
+        ],
+        [
+          "3k",
+          "=mag('p1_sweep','v(n1,n2)',3000) | | .4f",
+          "=mag('p1_sweep','v(n2)',3000) | | .4f",
+          "=mag('p1_sweep','v(n1,n2)',3000)/R1*1000 | | .4f",
+          "=mag('p1_sweep','v(n2)',3000)/(mag('p1_sweep','v(n1,n2)',3000)/R1) | | .2f",
+          "=1/(2*pi*3000*C1) | | .2f"
+        ],
+        [
+          "5k",
+          "=mag('p1_sweep','v(n1,n2)',5000) | | .4f",
+          "=mag('p1_sweep','v(n2)',5000) | | .4f",
+          "=mag('p1_sweep','v(n1,n2)',5000)/R1*1000 | | .4f",
+          "=mag('p1_sweep','v(n2)',5000)/(mag('p1_sweep','v(n1,n2)',5000)/R1) | | .2f",
+          "=1/(2*pi*5000*C1) | | .2f"
+        ],
+        [
+          "7k",
+          "=mag('p1_sweep','v(n1,n2)',7000) | | .4f",
+          "=mag('p1_sweep','v(n2)',7000) | | .4f",
+          "=mag('p1_sweep','v(n1,n2)',7000)/R1*1000 | | .4f",
+          "=mag('p1_sweep','v(n2)',7000)/(mag('p1_sweep','v(n1,n2)',7000)/R1) | | .2f",
+          "=1/(2*pi*7000*C1) | | .2f"
+        ],
+        [
+          "9k",
+          "=mag('p1_sweep','v(n1,n2)',9000) | | .4f",
+          "=mag('p1_sweep','v(n2)',9000) | | .4f",
+          "=mag('p1_sweep','v(n1,n2)',9000)/R1*1000 | | .4f",
+          "=mag('p1_sweep','v(n2)',9000)/(mag('p1_sweep','v(n1,n2)',9000)/R1) | | .2f",
+          "=1/(2*pi*9000*C1) | | .2f"
+        ],
+        [
+          "11k",
+          "=mag('p1_sweep','v(n1,n2)',11000) | | .4f",
+          "=mag('p1_sweep','v(n2)',11000) | | .4f",
+          "=mag('p1_sweep','v(n1,n2)',11000)/R1*1000 | | .4f",
+          "=mag('p1_sweep','v(n2)',11000)/(mag('p1_sweep','v(n1,n2)',11000)/R1) | | .2f",
+          "=1/(2*pi*11000*C1) | | .2f"
+        ],
+        [
+          "13k",
+          "=mag('p1_sweep','v(n1,n2)',13000) | | .4f",
+          "=mag('p1_sweep','v(n2)',13000) | | .4f",
+          "=mag('p1_sweep','v(n1,n2)',13000)/R1*1000 | | .4f",
+          "=mag('p1_sweep','v(n2)',13000)/(mag('p1_sweep','v(n1,n2)',13000)/R1) | | .2f",
+          "=1/(2*pi*13000*C1) | | .2f"
+        ],
+        [
+          "15k",
+          "=mag('p1_sweep','v(n1,n2)',15000) | | .4f",
+          "=mag('p1_sweep','v(n2)',15000) | | .4f",
+          "=mag('p1_sweep','v(n1,n2)',15000)/R1*1000 | | .4f",
+          "=mag('p1_sweep','v(n2)',15000)/(mag('p1_sweep','v(n1,n2)',15000)/R1) | | .2f",
+          "=1/(2*pi*15000*C1) | | .2f"
+        ]
+      ],
+      "plot": null
+    },
+    {
+      "type": "plot",
+      "caption": "Frequency vs. Voltage, VC",
+      "header_rows": [],
+      "rows": [],
+      "plot": {
+        "style": "xy",
+        "title": "Measured Frequency (Hz) vs. Voltage (VC)",
+        "x_label": "Frequency in Hz",
+        "y_label": "VC in mV RMS",
+        "log_x": false,
+        "series": [
+          {
+            "label": "VC",
+            "x": [
+              "300",
+              "1000",
+              "3000",
+              "5000",
+              "7000",
+              "9000",
+              "11000",
+              "13000",
+              "15000"
+            ],
+            "y": [
+              "mag('p1_sweep','v(n2)',300)*1000",
+              "mag('p1_sweep','v(n2)',1000)*1000",
+              "mag('p1_sweep','v(n2)',3000)*1000",
+              "mag('p1_sweep','v(n2)',5000)*1000",
+              "mag('p1_sweep','v(n2)',7000)*1000",
+              "mag('p1_sweep','v(n2)',9000)*1000",
+              "mag('p1_sweep','v(n2)',11000)*1000",
+              "mag('p1_sweep','v(n2)',13000)*1000",
+              "mag('p1_sweep','v(n2)',15000)*1000"
+            ]
+          }
+        ],
+        "vectors": []
+      }
+    },
+    {
+      "type": "table",
+      "caption": "Calculated and measured values",
+      "header_rows": [
+        [
+          "VR",
+          "I",
+          "VC",
+          "XC",
+          "ZT",
+          "Ө"
+        ]
+      ],
+      "rows": [
+        [
+          "=meas('p2_scope_vr','VR peak') | Vp | eng3",
+          "=meas('p2_scope_vr','VR peak')/R2 | Ap | eng3",
+          "=mag('p2_ac','v(n1,n2)') | Vp | .4g",
+          "=mag('p2_ac','v(n1,n2)')/(mag('p2_ac','v(n2)')/R2) | Ω | eng3",
+          "=sqrt(R2**2 + (mag('p2_ac','v(n1,n2)')/(mag('p2_ac','v(n2)')/R2))**2) | Ω | eng3",
+          "=degrees(atan(mag('p2_ac','v(n1,n2)')/(mag('p2_ac','v(n2)')/R2)/R2)) | ° | .2f"
+        ]
+      ],
+      "plot": null
+    },
+    {
+      "type": "table",
+      "caption": "Phase angle and phase lag measurements",
+      "header_rows": [
+        [
+          "Type of Angle",
+          "Measured Period (T)",
+          "Time difference (∆t)",
+          "Measured Angle",
+          "Calculated Angle"
+        ]
+      ],
+      "rows": [
+        [
+          "Phase angle θ",
+          "=meas('p3_phase','T') | s | eng3",
+          "=meas('p3_phase','dt') | s | eng3",
+          "=meas('p3_phase','dt')/meas('p3_phase','T')*360 | ° | .3f",
+          "=degrees(atan(1/(2*pi*f2*C2)/R2)) | ° | .3f"
+        ],
+        [
+          "Phase Lag Φ",
+          "=meas('p3_lag','T') | s | eng3",
+          "=meas('p3_lag','dt') | s | eng3",
+          "=meas('p3_lag','dt')/meas('p3_lag','T')*360 | ° | .3f",
+          "=90 - degrees(atan(1/(2*pi*f2*C2)/R2)) | ° | .3f"
+        ]
+      ],
+      "plot": null
+    },
+    {
+      "type": "plot",
+      "caption": "Impedance Phasor",
+      "header_rows": [],
+      "rows": [],
+      "plot": {
+        "style": "phasor",
+        "title": "Impedance phasor (Part II, 500 Hz)",
+        "x_label": "Resistance (Ω)",
+        "y_label": "Reactance (Ω)",
+        "log_x": false,
+        "series": [],
+        "vectors": [
+          {
+            "label": "R",
+            "magnitude": "R2",
+            "angle_deg": "0",
+            "start": null
+          },
+          {
+            "label": "XC",
+            "magnitude": "1/(2*pi*f2*C2)",
+            "angle_deg": "-90",
+            "start": "R"
+          },
+          {
+            "label": "ZT",
+            "magnitude": "sqrt(R2**2 + (1/(2*pi*f2*C2))**2)",
+            "angle_deg": "-degrees(atan(1/(2*pi*f2*C2)/R2))",
+            "start": null
+          }
+        ]
+      }
+    }
+  ],
+  "calculations": [
+    {
+      "label": "Part I step 3",
+      "lines": [
+        {
+          "formula": "I = VR/R",
+          "expr": "mag('p1_dmm','v(n1,n2)')/R1",
+          "unit": "A",
+          "fmt": "eng3"
+        }
+      ]
+    },
+    {
+      "label": "Part I step 4",
+      "lines": [
+        {
+          "formula": "XC = VC/I",
+          "expr": "mag('p1_dmm','v(n2)')/(mag('p1_dmm','v(n1,n2)')/R1)",
+          "unit": "Ω",
+          "fmt": "eng3"
+        }
+      ]
+    },
+    {
+      "label": "Part I step 5",
+      "lines": [
+        {
+          "formula": "XC = 1/(2πfC)",
+          "expr": "1/(2*pi*1000*C1)",
+          "unit": "Ω",
+          "fmt": ".2f"
+        }
+      ]
+    },
+    {
+      "label": "Part II step 10",
+      "lines": [
+        {
+          "formula": "I = VR/R",
+          "expr": "meas('p2_scope_vr','VR peak')/R2",
+          "unit": "A",
+          "fmt": "eng3"
+        }
+      ]
+    },
+    {
+      "label": "Part II step 12",
+      "lines": [
+        {
+          "formula": "XC = 1/(2πfC)",
+          "expr": "1/(2*pi*f2*C2)",
+          "unit": "Ω",
+          "fmt": "eng3"
+        },
+        {
+          "formula": "ZT = √(R² + XC²)",
+          "expr": "sqrt(R2**2 + (1/(2*pi*f2*C2))**2)",
+          "unit": "Ω",
+          "fmt": "eng3"
+        },
+        {
+          "formula": "θ = tan⁻¹(XC/R)",
+          "expr": "degrees(atan((1/(2*pi*f2*C2))/R2))",
+          "unit": "°",
+          "fmt": ".2f"
+        }
+      ]
+    },
+    {
+      "label": "Part III step 14",
+      "lines": [
+        {
+          "formula": "θ = (Δt/T) × 360°",
+          "expr": "meas('p3_phase','dt')/meas('p3_phase','T')*360",
+          "unit": "°",
+          "fmt": ".3f"
+        }
+      ]
+    },
+    {
+      "label": "Part III step 16",
+      "lines": [
+        {
+          "formula": "∅ = (Δt/T) × 360°",
+          "expr": "meas('p3_lag','dt')/meas('p3_lag','T')*360",
+          "unit": "°",
+          "fmt": ".3f"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "source": "analysis:p2_scope_vr",
+      "caption": "Screenshot of Waveforms for Part 2 Step 9"
+    },
+    {
+      "source": "analysis:p3_phase",
+      "caption": "Screenshot of Waveforms for Part 3 Step 13"
+    },
+    {
+      "source": "analysis:p3_lag",
+      "caption": "Screenshot of Waveforms for Part 3 Step 15"
+    }
+  ],
+  "conclusion": "As the source frequency increased, the capacitive reactance decreased: the 0.1 µF capacitor measured {{mag('p1_sweep','v(n2)',300)/(mag('p1_sweep','v(n1,n2)',300)/R1) | Ω | eng3}} at 300 Hz and {{mag('p1_sweep','v(n2)',15000)/(mag('p1_sweep','v(n1,n2)',15000)/R1) | Ω | eng3}} at 15 kHz, so more of the source voltage appeared across the resistor at high frequency. The measured reactance at 1 kHz differed from the computed value by {{abs(mag('p1_dmm','v(n2)')/(mag('p1_dmm','v(n1,n2)')/R1) - 1/(2*pi*1000*C1))/(1/(2*pi*1000*C1))*100 | % | .3f}}.\n\nFor the 6.8 kΩ and 0.01 µF circuit at 500 Hz the impedance magnitude was {{sqrt(R2**2 + (1/(2*pi*f2*C2))**2) | Ω | eng3}} and the peak current was {{meas('p2_scope_vr','VR peak')/R2 | A | eng3}}. The current led the source by {{meas('p3_phase','theta') | ° | .2f}} and the capacitor voltage lagged the source by {{abs(meas('p3_lag','phi')) | ° | .2f}}; the two angles add to 90° as expected for a series RC circuit.",
+  "references": [
+    "NI. (2024). Oscilloscope. Multisim help. https://www.ni.com/docs/en-US/bundle/multisim/page/topics/oscilloscope.html",
+    "NI. (2024). Multimeter. Multisim help. https://www.ni.com/docs/en-US/bundle/multisim/page/topics/multimeter.html"
+  ]
+}

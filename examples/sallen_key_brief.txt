@@ -1,0 +1,12 @@
+Design brief: 2nd-order Sallen-Key low-pass filter (unity gain)
+
+Supply: +/-12 V. Op-amp: general purpose (model as ideal-ish op-amp, GBW 1 MHz).
+Requirements
+- Cut-off frequency fc = 1 kHz (+/-5 %), Butterworth response (Q = 0.707).
+- Passband gain 0 dB (+/-0.5 dB).
+- Attenuation at 10 kHz at least 38 dB.
+Tests to show
+- Bode plot 10 Hz to 100 kHz.
+- Oscilloscope: input and output for a 1 V peak, 500 Hz sine.
+- Multimeter: DC operating point at the output and the supply current.
+Use R1 = R2 = 10k, C1 = 22n (to ground), C2 = 22n (feedback) as a starting point.

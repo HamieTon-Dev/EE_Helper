@@ -1,0 +1,120 @@
+name: Multisim Copilot (Windows .exe)
+
+# Builds the Multisim Copilot desktop app for Windows and attaches it to the run
+# as a downloadable zip: MultisimCopilot.exe (app), mscopilot-cli.exe (CLI),
+# MultisimWorker.exe (32-bit Multisim COM bridge) and a bundled ngspice engine.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  NGSPICE_VERSION: "44.2"
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12 (64-bit, main app)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          architecture: x64
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements-dev.txt
+
+      - name: Download ngspice
+        continue-on-error: true
+        run: |
+          # Official Windows build from SourceForge (tries a few releases), with the
+          # MSYS2 package as a fallback. Result: ngspice_dl/Spice64/bin/ngspice*.exe
+          $found = $null
+          :outer foreach ($v in "45.2", "45", "44.2", "44.1", "44") {
+            foreach ($u in @("https://downloads.sourceforge.net/project/ngspice/ng-spice-rework/$v/ngspice-${v}_64.7z",
+                             "https://sourceforge.net/projects/ngspice/files/ng-spice-rework/$v/ngspice-${v}_64.7z/download")) {
+              Write-Host "Trying $u"
+              curl.exe -fsSL --retry 3 --retry-delay 5 -A "Wget/1.21" -o ngspice.7z $u
+              if ($LASTEXITCODE -ne 0 -or -not (Test-Path ngspice.7z) -or (Get-Item ngspice.7z).Length -lt 5MB) { continue }
+              Remove-Item -Recurse -Force ngspice_dl -ErrorAction SilentlyContinue
+              7z x ngspice.7z -ongspice_dl -y | Out-Null
+              $found = Get-ChildItem -Recurse ngspice_dl -Filter ngspice_con.exe | Select-Object -First 1
+              if ($found) { Write-Host "Using ngspice $v"; break outer }
+            }
+          }
+          if (-not $found) {
+            Write-Warning "SourceForge download failed; falling back to the MSYS2 ngspice package."
+            C:\msys64\usr\bin\bash.exe -lc "pacman -Sy --noconfirm --needed mingw-w64-ucrt-x86_64-ngspice"
+            $bin = "ngspice_dl/Spice64/bin"
+            New-Item -ItemType Directory -Force $bin | Out-Null
+            Copy-Item C:\msys64\ucrt64\bin\ngspice.exe $bin
+            New-Item -ItemType Directory -Force ngspice_dl/Spice64/lib, ngspice_dl/Spice64/share | Out-Null
+            $deps = C:\msys64\usr\bin\bash.exe -lc "ldd /ucrt64/bin/ngspice.exe | awk '/ucrt64/ {print `$3}' | xargs -r cygpath -w"
+            foreach ($d in $deps) { if ($d) { Copy-Item $d.Trim() $bin } }
+            if (Test-Path C:\msys64\ucrt64\lib\ngspice) { Copy-Item -Recurse C:\msys64\ucrt64\lib\ngspice ngspice_dl/Spice64/lib/ngspice }
+            if (Test-Path C:\msys64\ucrt64\share\ngspice) { Copy-Item -Recurse C:\msys64\ucrt64\share\ngspice ngspice_dl/Spice64/share/ngspice }
+            $found = Get-Item "$bin/ngspice.exe" -ErrorAction SilentlyContinue
+          }
+          if ($found) { "NGSPICE_BIN=$($found.DirectoryName)" | Out-File -Append $env:GITHUB_ENV }
+          else { Write-Warning "No ngspice available; the zip will need ngspice installed separately." }
+
+      - name: Run tests
+        run: |
+          if ($env:NGSPICE_BIN) { $env:PATH = "$env:NGSPICE_BIN;$env:PATH" }
+          python -m pytest -q
+
+      - name: Build app (PyInstaller)
+        run: python -m PyInstaller --noconfirm packaging/MultisimCopilot.spec
+
+      - name: Set up Python 3.12 (32-bit, COM worker)
+        uses: actions/setup-python@v5
+        id: py32
+        with:
+          python-version: "3.12"
+          architecture: x86
+
+      - name: Build 32-bit Multisim COM worker
+        run: |
+          $py = "${{ steps.py32.outputs.python-path }}"
+          & $py -m pip install -r requirements-worker.txt pyinstaller
+          & $py -m PyInstaller --noconfirm --onefile --console --name MultisimWorker --paths . --distpath build/worker packaging/worker_entry.py
+          Copy-Item build/worker/MultisimWorker.exe dist/MultisimCopilot/
+
+      - name: Bundle ngspice and docs
+        run: |
+          if (Test-Path ngspice_dl) {
+            $spice = Get-ChildItem -Directory -Recurse ngspice_dl -Filter Spice64 | Select-Object -First 1
+            New-Item -ItemType Directory -Force dist/MultisimCopilot/ngspice | Out-Null
+            Copy-Item -Recurse $spice.FullName dist/MultisimCopilot/ngspice/
+          } else {
+            Write-Warning "ngspice download failed; the zip will need ngspice installed separately."
+          }
+          Copy-Item README.md dist/MultisimCopilot/
+          Copy-Item -Recurse examples dist/MultisimCopilot/examples -Force
+
+      - name: Smoke test the CLI
+        run: |
+          ./dist/MultisimCopilot/mscopilot-cli.exe doctor
+          if (-not $env:NGSPICE_BIN) { Write-Warning "ngspice not bundled; skipping the simulation smoke test."; exit 0 }
+          ./dist/MultisimCopilot/mscopilot-cli.exe simulate examples/sallen_key_plan.json --no-multisim -o "$env:RUNNER_TEMP/smoke"
+          if (-not (Get-ChildItem -Recurse "$env:RUNNER_TEMP/smoke" -Filter report.html)) { throw "no report produced" }
+          ./dist/MultisimCopilot/mscopilot-cli.exe simulate examples/series_rc_lab/plan.json --lab-json examples/series_rc_lab/lab_report.json --no-multisim -o "$env:RUNNER_TEMP/smoke_lab"
+          if (-not (Get-ChildItem -Recurse "$env:RUNNER_TEMP/smoke_lab" -Filter *_Lab_Report.docx)) { throw "no lab report produced" }
+
+      - name: Smoke test the COM worker
+        run: |
+          $out = '{"id":1,"cmd":"ping"}' | ./dist/MultisimCopilot/MultisimWorker.exe
+          Write-Host $out
+          if ($out -notmatch '"bits": 32') { throw "worker is not 32-bit" }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MultisimCopilot-windows
+          path: dist/MultisimCopilot
+          if-no-files-found: error
