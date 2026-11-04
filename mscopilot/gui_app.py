@@ -185,7 +185,7 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title(f"Multisim Copilot {__version__}")
-        self.geometry("1180x780")
+        self.geometry("1320x840")
         self.minsize(900, 600)
         self.settings = cfg.Settings.load()
         self.files: list[Path] = []
@@ -208,8 +208,18 @@ class App(tk.Tk):
         ttk.Button(top, text="Settings", command=self._settings).pack(side="right")
         ttk.Button(top, text="Open output folder", command=lambda: open_path(self.settings.resolved_output_root())).pack(side="right", padx=6)
 
-        panes = ttk.PanedWindow(self, orient="horizontal")
-        panes.pack(fill="both", expand=True, padx=12, pady=(0, 8))
+        self.main_tabs = ttk.Notebook(self)
+        self.main_tabs.pack(fill="both", expand=True, padx=12, pady=(0, 8))
+        sim_tab = ttk.Frame(self.main_tabs)
+        self.main_tabs.add(sim_tab, text="Simulate & report")
+        calc_tab = ttk.Frame(self.main_tabs)
+        self.main_tabs.add(calc_tab, text="EE Calculator")
+        self._calc_tab = calc_tab
+        self.calculator = None
+        self.main_tabs.bind("<<NotebookTabChanged>>", self._on_main_tab)
+
+        panes = ttk.PanedWindow(sim_tab, orient="horizontal")
+        panes.pack(fill="both", expand=True, pady=(6, 0))
 
         left = ttk.Frame(panes, padding=4)
         panes.add(left, weight=1)
@@ -265,6 +275,17 @@ class App(tk.Tk):
         self.status.pack(fill="x", side="bottom")
         self.progress = ttk.Progressbar(self, mode="indeterminate")
         self.progress.pack(fill="x", side="bottom", padx=12)
+
+    def _on_main_tab(self, _e=None):
+        if self.main_tabs.index("current") == 1 and self.calculator is None:
+            from mscopilot.calc_gui import CalculatorPanel
+
+            self.calculator = CalculatorPanel(self._calc_tab)  # built on first use: keeps start-up fast
+            self.calculator.pack(fill="both", expand=True)
+
+    def show_calculator(self):
+        self.main_tabs.select(1)
+        self._on_main_tab()
 
     # ------------------------------------------------------------ helpers
     def log(self, msg: str):
@@ -440,7 +461,9 @@ class App(tk.Tk):
         self._thread(job)
 
 
-def launch() -> int:
+def launch(tab: str = "") -> int:
     app = App()
+    if tab == "calc":
+        app.after(50, app.show_calculator)
     app.mainloop()
     return 0
