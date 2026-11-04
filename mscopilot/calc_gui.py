@@ -12,6 +12,7 @@ from mscopilot import config as cfg
 from mscopilot import eecalc
 from mscopilot.eecalc import core, graph, units
 from mscopilot.eecalc.store import Entry, Store
+from mscopilot.ui_common import ScrollFrame, with_scrollbars
 
 HINT = "#64748b"
 FONT = "Segoe UI"
@@ -48,31 +49,17 @@ class CalculatorPanel(ttk.Frame):
         se = ttk.Entry(left, textvariable=self.search_var, width=28)
         se.pack(fill="x", pady=(2, 6))
         self.search_var.trace_add("write", lambda *_: self._fill_tree())
-        tf = ttk.Frame(left)
+        tf, self.tree = with_scrollbars(left, ttk.Treeview, show="tree", selectmode="browse")
+        self.tree.column("#0", width=260, minwidth=260, stretch=True)
         tf.pack(fill="both", expand=True)
-        self.tree = ttk.Treeview(tf, show="tree", selectmode="browse")
-        sb = ttk.Scrollbar(tf, orient="vertical", command=self.tree.yview)
-        self.tree.configure(yscrollcommand=sb.set)
-        self.tree.pack(side="left", fill="both", expand=True)
-        sb.pack(side="left", fill="y")
         self.tree.bind("<<TreeviewSelect>>", self._on_tree)
 
         # ---- middle: inputs (scrollable)
-        mid_outer = ttk.Frame(panes)
-        panes.add(mid_outer, weight=2)
-        self.mid_canvas = tk.Canvas(mid_outer, highlightthickness=0, borderwidth=0)
-        msb = ttk.Scrollbar(mid_outer, orient="vertical", command=self.mid_canvas.yview)
-        self.mid_canvas.configure(yscrollcommand=msb.set)
-        msb.pack(side="right", fill="y")
-        self.mid_canvas.pack(side="left", fill="both", expand=True)
-        self.mid = ttk.Frame(self.mid_canvas, padding=(6, 0))
-        self._mid_win = self.mid_canvas.create_window(0, 0, window=self.mid, anchor="nw")
-        self.mid.bind("<Configure>", lambda e: self.mid_canvas.configure(scrollregion=self.mid_canvas.bbox("all")))
-        self.mid_canvas.bind("<Configure>", self._on_mid_resize)
+        self.mid_sf = ScrollFrame(panes, padding=(6, 0))
+        panes.add(self.mid_sf, weight=2)
+        self.mid = self.mid_sf.body
+        self.mid_sf.canvas.bind("<Configure>", self._on_mid_resize, add="+")
         self._hints = []
-        for w in (self.mid_canvas, self.mid):
-            w.bind("<Enter>", lambda e: self._bind_wheel(True))
-            w.bind("<Leave>", lambda e: self._bind_wheel(False))
 
         self.title_lbl = ttk.Label(self.mid, text="", font=(FONT, 13, "bold"))
         self.title_lbl.pack(anchor="w")
@@ -119,13 +106,9 @@ class CalculatorPanel(ttk.Frame):
         self.answer = ttk.Label(res, text="", font=(FONT, 15, "bold"), foreground="#1d4ed8", wraplength=520, justify="left")
         self.answer.pack(anchor="w", fill="x")
         self.answer.bind("<Configure>", lambda e: self.answer.configure(wraplength=max(200, e.width - 10)))
-        rf = ttk.Frame(res)
+        rf, self.out = with_scrollbars(res, tk.Text, wrap="word", font=("Consolas", 10), relief="flat", padx=6, pady=6,
+                                       state="disabled")
         rf.pack(fill="both", expand=True, pady=(6, 0))
-        self.out = tk.Text(rf, wrap="word", font=("Consolas", 10), relief="flat", padx=6, pady=6, state="disabled")
-        osb = ttk.Scrollbar(rf, orient="vertical", command=self.out.yview)
-        self.out.configure(yscrollcommand=osb.set)
-        self.out.pack(side="left", fill="both", expand=True)
-        osb.pack(side="left", fill="y")
         self.out.tag_configure("h", font=(FONT, 10, "bold"), spacing1=8, spacing3=2)
         self.out.tag_configure("key", font=("Consolas", 10, "bold"))
         self.out.tag_configure("note", foreground=HINT)
@@ -140,8 +123,9 @@ class CalculatorPanel(ttk.Frame):
         for val, lab in graph.MAG_MODES:
             ttk.Radiobutton(gbar, text=lab, value=val, variable=self.mag_mode, command=self._draw_graph).pack(side="left", padx=3)
         ttk.Button(gbar, text="Export graph…", command=self.export_graph).pack(side="right")
-        self.graph_host = ttk.Frame(gr)
-        self.graph_host.pack(fill="both", expand=True, pady=(4, 0))
+        self.graph_sf = ScrollFrame(gr)
+        self.graph_sf.pack(fill="both", expand=True, pady=(4, 0))
+        self.graph_host = self.graph_sf.body
         self.graph_msg = ttk.Label(self.graph_host, text="Graphs appear here for filters, resonant circuits and transients.",
                                    foreground=HINT)
         self.graph_msg.pack(pady=20)
@@ -150,11 +134,11 @@ class CalculatorPanel(ttk.Frame):
 
         hi = ttk.Frame(right, padding=6)
         right.add(hi, text="History")
-        self.hist = ttk.Treeview(hi, columns=("time", "calc", "answer"), show="headings", selectmode="browse")
+        hf, self.hist = with_scrollbars(hi, ttk.Treeview, columns=("time", "calc", "answer"), show="headings", selectmode="browse")
         for col, w in (("time", 130), ("calc", 180), ("answer", 260)):
             self.hist.heading(col, text=col.title())
-            self.hist.column(col, width=w, stretch=col == "answer")
-        self.hist.pack(fill="both", expand=True)
+            self.hist.column(col, width=w, minwidth=w // 2, stretch=col == "answer")
+        hf.pack(fill="both", expand=True)
         self.hist.bind("<Double-1>", lambda e: self._restore(self.store.history, self.hist))
         hb = ttk.Frame(hi)
         hb.pack(fill="x", pady=(4, 0))
@@ -163,11 +147,11 @@ class CalculatorPanel(ttk.Frame):
 
         sv = ttk.Frame(right, padding=6)
         right.add(sv, text="Saved")
-        self.saved = ttk.Treeview(sv, columns=("name", "calc", "answer"), show="headings", selectmode="browse")
+        svf, self.saved = with_scrollbars(sv, ttk.Treeview, columns=("name", "calc", "answer"), show="headings", selectmode="browse")
         for col, w in (("name", 150), ("calc", 180), ("answer", 240)):
             self.saved.heading(col, text=col.title())
-            self.saved.column(col, width=w, stretch=col == "answer")
-        self.saved.pack(fill="both", expand=True)
+            self.saved.column(col, width=w, minwidth=w // 2, stretch=col == "answer")
+        svf.pack(fill="both", expand=True)
         self.saved.bind("<Double-1>", lambda e: self._restore(self.store.saved, self.saved))
         sbx = ttk.Frame(sv)
         sbx.pack(fill="x", pady=(4, 0))
@@ -186,22 +170,12 @@ class CalculatorPanel(ttk.Frame):
             pass
 
     def _on_mid_resize(self, e):
-        self.mid_canvas.itemconfigure(self._mid_win, width=e.width)
         self.desc_lbl.configure(wraplength=max(200, e.width - 20))
         for lab in self._hints:
             try:
                 lab.configure(wraplength=max(120, e.width - 300))
             except tk.TclError:
                 pass
-
-    def _bind_wheel(self, on):
-        if on:
-            self.mid_canvas.bind_all("<MouseWheel>", lambda e: self.mid_canvas.yview_scroll(int(-e.delta / 120), "units"))
-            self.mid_canvas.bind_all("<Button-4>", lambda e: self.mid_canvas.yview_scroll(-1, "units"))
-            self.mid_canvas.bind_all("<Button-5>", lambda e: self.mid_canvas.yview_scroll(1, "units"))
-        else:
-            for ev in ("<MouseWheel>", "<Button-4>", "<Button-5>"):
-                self.mid_canvas.unbind_all(ev)
 
     def _on_enter(self, event):
         w = event.widget
@@ -429,7 +403,9 @@ class CalculatorPanel(ttk.Frame):
             self.fig = Figure(figsize=(6, 5), dpi=96)
             self.fig_canvas = FigureCanvasTkAgg(self.fig, master=self.graph_host)
         self.graph_msg.pack_forget()
-        self.fig_canvas.get_tk_widget().pack(fill="both", expand=True)
+        tkw = self.fig_canvas.get_tk_widget()
+        tkw.configure(width=560, height=440)  # minimum size; scrollbars appear below this
+        tkw.pack(fill="both", expand=True)
         try:
             graph.draw(self.fig, spec, self.mag_mode.get(), self.angle_unit.get())
         except Exception as e:

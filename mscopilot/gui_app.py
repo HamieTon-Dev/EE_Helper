@@ -14,6 +14,7 @@ from tkinter import filedialog, messagebox, ttk
 from mscopilot import __version__
 from mscopilot import config as cfg
 from mscopilot.inputs import SUPPORTED_EXT
+from mscopilot.ui_common import ScrollFrame, with_scrollbars
 
 PLACEHOLDER = ("e.g. Verify this 2nd-order Sallen-Key low-pass: fc = 1 kHz ±5 %, passband gain 0 dB, "
                "show a Bode plot 10 Hz-100 kHz, a scope view of a 500 Hz 1 Vpk sine, and the DC operating point.")
@@ -42,14 +43,20 @@ class SettingsDialog(tk.Toplevel):
         super().__init__(master)
         self.title("Settings")
         self.s = settings
-        self.resizable(False, False)
+        self.resizable(True, True)
+        self.minsize(420, 300)
+        self.geometry("700x640")
         self.transient(master)
+        self.rowconfigure(0, weight=1)
+        self.columnconfigure(0, weight=1)
         nb = ttk.Notebook(self)
-        nb.grid(sticky="nsew", padx=8, pady=8)
-        f = ttk.Frame(nb, padding=14)
-        nb.add(f, text="AI & tools")
-        lab = ttk.Frame(nb, padding=14)
-        nb.add(lab, text="Lab report")
+        nb.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
+        sf1 = ScrollFrame(nb, padding=14)
+        nb.add(sf1, text="AI & tools")
+        f = sf1.body
+        sf2 = ScrollFrame(nb, padding=14)
+        nb.add(sf2, text="Lab report")
+        lab = sf2.body
         self._build_lab_tab(lab, settings)
         row = 0
 
@@ -186,7 +193,7 @@ class App(tk.Tk):
         super().__init__()
         self.title(f"Multisim Copilot {__version__}")
         self.geometry("1320x840")
-        self.minsize(900, 600)
+        self.minsize(640, 460)
         self.settings = cfg.Settings.load()
         self.files: list[Path] = []
         self.msgs: queue.Queue = queue.Queue()
@@ -221,22 +228,23 @@ class App(tk.Tk):
         panes = ttk.PanedWindow(sim_tab, orient="horizontal")
         panes.pack(fill="both", expand=True, pady=(6, 0))
 
-        left = ttk.Frame(panes, padding=4)
-        panes.add(left, weight=1)
+        left_sf = ScrollFrame(panes, padding=4)
+        panes.add(left_sf, weight=1)
+        left = left_sf.body
         ttk.Label(left, text="1. Design inputs", font=("Segoe UI", 11, "bold")).pack(anchor="w")
         ttk.Label(left, text="Briefs (.docx/.txt), schematic images, .cir netlists, .ms14 circuits", foreground="#64748b").pack(anchor="w")
         lf = ttk.Frame(left)
         lf.pack(fill="both", expand=False, pady=4)
-        self.file_list = tk.Listbox(lf, height=7, selectmode="extended")
-        self.file_list.pack(side="left", fill="both", expand=True)
+        lbf, self.file_list = with_scrollbars(lf, tk.Listbox, height=7, selectmode="extended")
+        lbf.pack(side="left", fill="both", expand=True)
         bf = ttk.Frame(lf)
         bf.pack(side="left", fill="y", padx=(6, 0))
         ttk.Button(bf, text="Add files…", command=self._add_files).pack(fill="x")
         ttk.Button(bf, text="Remove", command=self._remove_files).pack(fill="x", pady=4)
         ttk.Button(bf, text="Clear", command=self._clear_files).pack(fill="x")
         ttk.Label(left, text="Instructions / requirements", font=("Segoe UI", 10, "bold")).pack(anchor="w", pady=(8, 0))
-        self.instructions = tk.Text(left, height=10, wrap="word", font=("Segoe UI", 10))
-        self.instructions.pack(fill="both", expand=True, pady=4)
+        itf, self.instructions = with_scrollbars(left, tk.Text, x=False, height=10, wrap="word", font=("Segoe UI", 10))
+        itf.pack(fill="both", expand=True, pady=4)
         self.instructions.insert("1.0", PLACEHOLDER)
         self.instructions.configure(foreground="#94a3b8")
         self.instructions.bind("<FocusIn>", self._clear_placeholder)
@@ -267,10 +275,10 @@ class App(tk.Tk):
         right.add(log_tab, text="Activity log")
         right.add(plan_tab, text="Simulation plan (JSON)")
         self.notebook = right
-        self.plan_text = tk.Text(plan_tab, wrap="none", font=("Consolas", 10), undo=True)
-        self.plan_text.pack(fill="both", expand=True)
-        self.log_text = tk.Text(log_tab, wrap="word", font=("Consolas", 9), state="disabled")
-        self.log_text.pack(fill="both", expand=True)
+        ptf, self.plan_text = with_scrollbars(plan_tab, tk.Text, wrap="none", font=("Consolas", 10), undo=True)
+        ptf.pack(fill="both", expand=True)
+        ltf, self.log_text = with_scrollbars(log_tab, tk.Text, wrap="none", font=("Consolas", 9), state="disabled")
+        ltf.pack(fill="both", expand=True)
         self.status = ttk.Label(self, text="Ready", padding=(12, 4), anchor="w")
         self.status.pack(fill="x", side="bottom")
         self.progress = ttk.Progressbar(self, mode="indeterminate")
