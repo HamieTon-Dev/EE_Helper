@@ -1,7 +1,7 @@
-name: Multisim Copilot (Windows .exe)
+name: Electrical Engineering Sim Lab (Windows .exe)
 
-# Builds the Multisim Copilot desktop app for Windows and attaches it to the run
-# as a downloadable zip: MultisimCopilot.exe (app), mscopilot-cli.exe (CLI),
+# Builds the Electrical Engineering Sim Lab desktop app for Windows and attaches it to the run
+# as a downloadable zip: EESimLab.exe (app), eesimlab-cli.exe (CLI),
 # MultisimWorker.exe (32-bit Multisim COM bridge) and a bundled ngspice engine.
 on:
   workflow_dispatch:
@@ -70,7 +70,7 @@ jobs:
           python -m pytest -q
 
       - name: Build app (PyInstaller)
-        run: python -m PyInstaller --noconfirm packaging/MultisimCopilot.spec
+        run: python -m PyInstaller --noconfirm packaging/EESimLab.spec
 
       - name: Set up Python 3.12 (32-bit, COM worker)
         uses: actions/setup-python@v5
@@ -84,37 +84,37 @@ jobs:
           $py = "${{ steps.py32.outputs.python-path }}"
           & $py -m pip install -r requirements-worker.txt pyinstaller
           & $py -m PyInstaller --noconfirm --onefile --console --name MultisimWorker --paths . --distpath build/worker packaging/worker_entry.py
-          Copy-Item build/worker/MultisimWorker.exe dist/MultisimCopilot/
+          Copy-Item build/worker/MultisimWorker.exe dist/EESimLab/
 
       - name: Bundle ngspice and docs
         run: |
           if (Test-Path ngspice_dl) {
             $spice = Get-ChildItem -Directory -Recurse ngspice_dl -Filter Spice64 | Select-Object -First 1
-            New-Item -ItemType Directory -Force dist/MultisimCopilot/ngspice | Out-Null
-            Copy-Item -Recurse $spice.FullName dist/MultisimCopilot/ngspice/
+            New-Item -ItemType Directory -Force dist/EESimLab/ngspice | Out-Null
+            Copy-Item -Recurse $spice.FullName dist/EESimLab/ngspice/
           } else {
             Write-Warning "ngspice download failed; the zip will need ngspice installed separately."
           }
-          Copy-Item README.md dist/MultisimCopilot/
-          Copy-Item -Recurse examples dist/MultisimCopilot/examples -Force
+          Copy-Item README.md dist/EESimLab/
+          Copy-Item -Recurse examples dist/EESimLab/examples -Force
 
       - name: Smoke test the CLI
         run: |
-          ./dist/MultisimCopilot/mscopilot-cli.exe doctor
+          ./dist/EESimLab/eesimlab-cli.exe doctor
           if (-not $env:NGSPICE_BIN) { Write-Warning "ngspice not bundled; skipping the simulation smoke test."; exit 0 }
-          ./dist/MultisimCopilot/mscopilot-cli.exe simulate examples/sallen_key_plan.json --no-multisim -o "$env:RUNNER_TEMP/smoke"
+          ./dist/EESimLab/eesimlab-cli.exe simulate examples/sallen_key_plan.json --no-multisim -o "$env:RUNNER_TEMP/smoke"
           if (-not (Get-ChildItem -Recurse "$env:RUNNER_TEMP/smoke" -Filter report.html)) { throw "no report produced" }
-          ./dist/MultisimCopilot/mscopilot-cli.exe simulate examples/series_rc_lab/plan.json --lab-json examples/series_rc_lab/lab_report.json --no-multisim -o "$env:RUNNER_TEMP/smoke_lab"
+          ./dist/EESimLab/eesimlab-cli.exe simulate examples/series_rc_lab/plan.json --lab-json examples/series_rc_lab/lab_report.json --no-multisim -o "$env:RUNNER_TEMP/smoke_lab"
           if (-not (Get-ChildItem -Recurse "$env:RUNNER_TEMP/smoke_lab" -Filter *_Lab_Report.docx)) { throw "no lab report produced" }
 
       - name: Smoke test the COM worker
         run: |
-          $out = '{"id":1,"cmd":"ping"}' | ./dist/MultisimCopilot/MultisimWorker.exe
+          $out = '{"id":1,"cmd":"ping"}' | ./dist/EESimLab/MultisimWorker.exe
           Write-Host $out
           if ($out -notmatch '"bits": 32') { throw "worker is not 32-bit" }
 
       - uses: actions/upload-artifact@v4
         with:
-          name: MultisimCopilot-windows
-          path: dist/MultisimCopilot
+          name: EESimLab-windows
+          path: dist/EESimLab
           if-no-files-found: error

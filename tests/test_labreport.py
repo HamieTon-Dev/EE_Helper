@@ -6,10 +6,10 @@ from pathlib import Path
 
 import pytest
 
-from mscopilot import config as cfg
-from mscopilot.labexpr import Context, ExprError, fmt_value
-from mscopilot.labreport import build_lab_report, collect_errors, open_template, Profile
-from mscopilot.plan import Plan
+from eesimlab import config as cfg
+from eesimlab.labexpr import Context, ExprError, fmt_value
+from eesimlab.labreport import build_lab_report, collect_errors, open_template, Profile
+from eesimlab.plan import Plan
 
 LAB = Path(__file__).resolve().parent.parent / "examples" / "series_rc_lab"
 NGSPICE = shutil.which("ngspice") or shutil.which("ngspice_con")
@@ -17,8 +17,8 @@ needs_ngspice = pytest.mark.skipif(not NGSPICE, reason="ngspice not installed")
 
 
 def _simulate(tmp_path):
-    from mscopilot import plots
-    from mscopilot.engines.ngspice_engine import run_plan
+    from eesimlab import plots
+    from eesimlab.engines.ngspice_engine import run_plan
 
     plan = Plan.load(LAB / "plan.json")
     results = run_plan(plan, NGSPICE, tmp_path, log=lambda *_: None)
@@ -149,8 +149,8 @@ class LabProvider:
 
 @needs_ngspice
 def test_pipeline_lab_mode_with_repair(tmp_path):
-    from mscopilot.inputs import load_package
-    from mscopilot.pipeline import Pipeline
+    from eesimlab.inputs import load_package
+    from eesimlab.pipeline import Pipeline
 
     s = cfg.Settings(output_root=str(tmp_path), ngspice_path=NGSPICE, use_multisim_com=False, use_multisim_gui=False,
                      report_style="lab", course="Circuits Lab", instructor="Dr. Example", student="Pat")

@@ -6,12 +6,12 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
-from mscopilot import config as cfg
-from mscopilot.ai.providers import AnthropicProvider, OpenAIProvider, Prompt
-from mscopilot.engines.netlist import clean_netlist, multisim_deck, ngspice_deck
-from mscopilot.engines.results import AnalysisResult, compute_measurement, judge, parse_wrdata, MeasurementResult
-from mscopilot.inputs import load_package
-from mscopilot.plan import PLAN_SCHEMA, Analysis, Measurement, Plan, extract_json_object
+from eesimlab import config as cfg
+from eesimlab.ai.providers import AnthropicProvider, OpenAIProvider, Prompt
+from eesimlab.engines.netlist import clean_netlist, multisim_deck, ngspice_deck
+from eesimlab.engines.results import AnalysisResult, compute_measurement, judge, parse_wrdata, MeasurementResult
+from eesimlab.inputs import load_package
+from eesimlab.plan import PLAN_SCHEMA, Analysis, Measurement, Plan, extract_json_object
 
 EXAMPLES = Path(__file__).resolve().parent.parent / "examples"
 NGSPICE = shutil.which("ngspice") or shutil.which("ngspice_con")
@@ -160,7 +160,7 @@ def test_anthropic_provider_request_shape():
         return _FakeStream(msg)
 
     client = SimpleNamespace(beta=SimpleNamespace(messages=SimpleNamespace(stream=stream)))
-    from mscopilot.inputs import ImageInput
+    from eesimlab.inputs import ImageInput
 
     p = AnthropicProvider("k", "claude-opus-5-5", "high", log=lambda *_: None, client=client)
     out = p.complete_json(Prompt("sys", "hi", [ImageInput("a.png", "image/png", b"\x89PNG")], {"type": "object"}, "x"))
@@ -209,7 +209,7 @@ class ScriptedProvider:
 
 @pytest.mark.skipif(not NGSPICE, reason="ngspice not installed")
 def test_full_pipeline_with_revision(tmp_path):
-    from mscopilot.pipeline import Pipeline
+    from eesimlab.pipeline import Pipeline
 
     s = cfg.Settings(output_root=str(tmp_path), ngspice_path=NGSPICE, max_design_iterations=3, use_multisim_com=False,
                      use_multisim_gui=False, report_style="engineering")

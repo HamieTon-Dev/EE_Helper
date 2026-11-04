@@ -4,8 +4,8 @@ import math
 
 import pytest
 
-from mscopilot.eecalc import cexpr
-from mscopilot.eecalc.core import CalcError, run
+from eesimlab.eecalc import cexpr
+from eesimlab.eecalc.core import CalcError, run
 
 
 def test_quiz_multiply_polar():

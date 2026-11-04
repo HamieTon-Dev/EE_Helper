@@ -10,9 +10,9 @@ import math
 import numpy as np
 import pytest
 
-from mscopilot import eecalc
-from mscopilot.eecalc import core, units
-from mscopilot.eecalc.core import CalcError, run
+from eesimlab import eecalc
+from eesimlab.eecalc import core, units
+from eesimlab.eecalc.core import CalcError, run
 
 TWO_PI = 2 * math.pi
 
@@ -80,7 +80,7 @@ def test_highpass_dc_limit_is_minus_infinity_db_not_a_crash():
 
 
 def test_plot_never_starts_at_zero_hz():
-    from mscopilot.eecalc.graph import freq_range
+    from eesimlab.eecalc.graph import freq_range
 
     _, r = run("rc_filter", {"R": ("1", "kΩ"), "C": ("4", "nF"), "Vin": ("1", "V"), "f": ("0", "Hz")})
     lo, hi = freq_range(r.plot)
@@ -312,7 +312,7 @@ def test_search_and_categories():
 
 
 def test_store_roundtrip(tmp_path):
-    from mscopilot.eecalc.store import Entry, Store
+    from eesimlab.eecalc.store import Entry, Store
 
     s = Store(tmp_path / "calc.json")
     s.add_history(Entry("rc_filter", "RC", {"response": "lp"}, "fc", {"R": ["1", "kΩ"]}, "fC = 39.789 kHz"))

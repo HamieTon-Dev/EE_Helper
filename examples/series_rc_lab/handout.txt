@@ -1,4 +1,4 @@
-Lab: Series RC Circuits (example handout written for Multisim Copilot)
+Lab: Series RC Circuits (example handout written for Electrical Engineering Sim Lab)
 
 Objectives: measure capacitive reactance versus frequency, measure the impedance of a
 series RC circuit, and measure phase angle (VR vs VS) and phase lag (VC vs VS) with an

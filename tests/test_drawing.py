@@ -5,13 +5,13 @@ import math
 import numpy as np
 import pytest
 
-from mscopilot.drawing import solver as S
-from mscopilot.drawing.analysis import SimSettings, analyse
-from mscopilot.drawing.instruments import Probe, measure
-from mscopilot.drawing.model import Component, DrawingModel, Junction, Node, SourceParams, parse_value
-from mscopilot.drawing.project import Workspace
-from mscopilot.drawing.reconstruct import build_model
-from mscopilot.drawing.validate import static_checks
+from eesimlab.drawing import solver as S
+from eesimlab.drawing.analysis import SimSettings, analyse
+from eesimlab.drawing.instruments import Probe, measure
+from eesimlab.drawing.model import Component, DrawingModel, Junction, Node, SourceParams, parse_value
+from eesimlab.drawing.project import Workspace
+from eesimlab.drawing.reconstruct import build_model
+from eesimlab.drawing.validate import static_checks
 
 
 def mk(comps, nodes, gnd="0"):
@@ -266,7 +266,7 @@ def test_reconstruct_keeps_unknowns_and_crossings():
 def test_project_roundtrip_and_report(tmp_path):
     from PIL import Image
 
-    from mscopilot.drawing.report import build_report, compare_versions
+    from eesimlab.drawing.report import build_report, compare_versions
 
     img = Image.new("RGB", (400, 300), "white")
     import io
@@ -296,7 +296,7 @@ def test_project_roundtrip_and_report(tmp_path):
 def test_pdf_and_rotation_geometry(tmp_path):
     from PIL import Image
 
-    from mscopilot.drawing.recognize import load_drawing, rotate_point, unrotate_point
+    from eesimlab.drawing.recognize import load_drawing, rotate_point, unrotate_point
 
     for ang in (0, 90, 33.5, 180, 270):
         x, y, W, H = rotate_point(120, 45, 400, 300, ang)
@@ -308,7 +308,7 @@ def test_pdf_and_rotation_geometry(tmp_path):
 
 
 def test_catalog_is_large_and_consistent():
-    from mscopilot.drawing import catalog as CAT
+    from eesimlab.drawing import catalog as CAT
 
     assert len(CAT.CATALOG) > 1500
     assert len({p.key for p in CAT.CATALOG}) == len(CAT.CATALOG)

@@ -1,6 +1,64 @@
-# Multisim Copilot
+# Electrical Engineering Sim Lab
 
-A Windows desktop app that turns a design brief into simulated, reviewed and documented
+A Windows desktop application for electrical engineering work. It has four main parts, in
+four tabs:
+
+| Tab | What it does |
+|---|---|
+| **Simulate & report** | Turns a design brief or lab handout into an AI-planned SPICE simulation. Produces an engineering report and course-format lab report, and can drive NI Multisim if it is installed. |
+| **EE Calculator** | 47 calculators: Ohm's law, power, series/parallel, dividers, sine forms, RC/RL filters, reactance, resonance, series/parallel RLC, transients, a complex-number calculator (polar ↔ rectangular), exact SI-prefix and unit conversion with a pop-out prefix chart, decibels, AC/three-phase power, a transformer winding simulator, a relay simulator, Δ–Y, Thevenin/Norton, wire resistance, colour code, E-series, LED, battery. |
+| **Drawing analysis & schematic** | Upload a PNG/JPG/PDF schematic or photo, or draw one from a catalog of 1,770 parts. Correct the recognised circuit, then analyse it. Findings appear on the drawing, calculations come from a built-in numerical solver, and virtual voltmeter, ammeter, oscilloscope and ohmmeter probes give simulated readings. Supports revisions, comparison, saved projects and an HTML report. |
+
+## EE Calculator
+
+Every calculation shows the answer, the formula, the substituted values, the steps, the
+assumptions and the definition of each symbol.
+* **Inputs:** every input has a unit selector and is converted internally to base SI
+  units. You choose the number of decimal places, and degrees or radians.
+* **History:** history, saved calculations, reset, and copy as plain text.
+* **Graphs:** filters and resonant circuits get log-frequency magnitude/phase graphs (in V,
+  ratio or dB); transients get time plots. Graphs export to PNG, SVG or PDF.
+* **Complex numbers:** type `8 + j3`, `29∠-72` (also `29<-72` or `29@-72`), `A*B`,
+  `par(A,B)`, `conj()`, `sqrt()`, and so on. The answer is given in both rectangular and
+  polar form.
+* **Prefix chart:** opens in its own window and covers quecto (10⁻³⁰) to quetta (10³⁰).
+  The prefix converter is exact, for example 1 GW = 1 000 000 000 000 mW.
+
+## Drawing analysis, virtual probing and schematic editor
+
+1. **Open** a drawing (PNG/JPG/PDF; photos and hand drawings are supported) or start a
+   **New blank schematic**. You can zoom, pan, rotate (90° steps or fine angles) and
+   enhance the image.
+2. **Recognize with AI** (optional; uses the AI provider set in Settings) or build the
+   circuit yourself. Place parts from the catalog, then use **Wire** and **Ground**.
+   * Recognised items show their confidence. Unreadable values stay blank and are never
+     guessed.
+   * Wire crossings and junctions are marked separately. Ambiguous ones must be resolved
+     before analysis.
+3. **Correct** components, values, ratings, polarity, source waveforms, switch states and
+   connections in the Components and Connections tabs.
+4. **Confirm model & analyse.** Findings are grouped as confirmed problems, possible
+   concerns and missing information. Each is ringed on the drawing with its cause, likely
+   effect and fix. Calculations come from the built-in modified nodal analysis solver (DC,
+   AC, frequency sweep, transient) and show their method and working.
+5. **Probe.** Click nodes or parts with the voltmeter (red, then black), ammeter (in series
+   with a part), scope (up to four channels) or ohmmeter (circuit de-energised). Readings
+   are marked **SIMULATED** and become **OUTDATED** when the model or settings change.
+6. **New revision:** try a change without touching the original, then use **Compare** to
+   see the before and after values.
+7. **Save project** (`.eelab`: the original drawing, model versions, probes, settings and
+   notes) and **Export report** (HTML).
+
+Supported for simulation: resistors, capacitors, inductors, independent voltage and
+current sources (DC, sine, square, step), and switches. Other catalog or recognised parts
+(diodes, transistors, ICs, relays, transformers, …) are drawn but reported as
+unsupported; they are never simulated with a misleading model. Non-electrical drawings get
+dimension read-out, plus distance measurement once you set a scale from a known
+reference.
+
+## Design-brief simulations
+
+Turn a design brief into simulated, reviewed and documented
 circuits:
 
 1. **You provide** a brief (`.docx`, `.txt`, `.md`, or typed instructions), schematic
@@ -24,7 +82,7 @@ circuits:
    `report.docx`, with links to every generated file: `.cir`, `.ms14`, CSV, plan JSON and
    logs.
 
-## Lab reports in the course format
+### Lab reports in the course format
 
 Give it the lab handout (`.docx`, with its circuit figures) and it produces the full
 report as an editable Word file, in the same structure as a hand-written lab report:
@@ -71,36 +129,36 @@ optional and start empty. You can also choose:
 
 **Each lab:** add the handout and click **Run everything**. To write only the lab report,
 set *Report output* to "Lab report (.docx) only" or use
-`mscopilot-cli run handout.docx --report lab`. The run folder also contains
+`eesimlab-cli run handout.docx --report lab`. The run folder also contains
 `lab_report.json`. You can edit its text and re-render without the AI:
-`mscopilot-cli simulate <run>/simulation/plan.json --lab-json <run>/lab_report.json`.
+`eesimlab-cli simulate <run>/simulation/plan.json --lab-json <run>/lab_report.json`.
 
 `examples/series_rc_lab/` has a worked series RC lab: handout, plan and report JSON. It
 renders with no API key:
 
 ```bat
-mscopilot-cli simulate examples\series_rc_lab\plan.json --lab-json examples\series_rc_lab\lab_report.json --no-multisim
+eesimlab-cli simulate examples\series_rc_lab\plan.json --lab-json examples\series_rc_lab\lab_report.json --no-multisim
 ```
 
 ## Install
 
-Download the `MultisimCopilot-windows` artifact from the latest run of the
-**Multisim Copilot (Windows .exe)** GitHub Actions workflow, unzip it anywhere, and run
-`MultisimCopilot.exe`. The folder contains:
+Download the `EESimLab-windows` artifact from the latest run of the
+**Electrical Engineering Sim Lab (Windows .exe)** GitHub Actions workflow, unzip it anywhere, and run
+`EESimLab.exe`. The folder contains:
 
 | File | Purpose |
 |---|---|
-| `MultisimCopilot.exe` | Desktop app |
-| `mscopilot-cli.exe` | Command-line version, for scripting and batch runs |
+| `EESimLab.exe` | Desktop app |
+| `eesimlab-cli.exe` | Command-line version, for scripting and batch runs |
 | `MultisimWorker.exe` | 32-bit bridge to Multisim's COM Automation API |
 | `ngspice\` | Bundled SPICE engine |
-| `examples\` | Sample brief and plan |
+| `examples\` | Sample brief, plans and a worked lab |
 
 The first time you run it, open **Settings**:
 
 * **AI provider + API key.** Keys are stored in Windows Credential Manager, never in a
   file. The environment variables `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` or
-  `MSCOPILOT_API_KEY` override the stored key.
+  `EESIMLAB_API_KEY` override the stored key.
   * Anthropic: default model `claude-opus-5-5`, with adaptive thinking and an "effort"
     setting. A server-side refusal fallback is enabled.
   * OpenAI: default model `gpt-5`. You can enter any model name.
@@ -111,14 +169,14 @@ The first time you run it, open **Settings**:
   elsewhere, browse to it.
 * **ngspice**: blank uses the bundled copy.
 
-`mscopilot-cli.exe doctor` shows what was detected.
+`eesimlab-cli.exe doctor` shows what was detected.
 
 ## Use
 
 **Desktop app:** add files, type requirements, then click **Run everything**. To check the
 plan before running it, click **Plan with AI**, edit the JSON on the right, then click
 **Run the plan shown on the right**. The report opens when the run finishes. Each run gets
-its own folder under `Documents\MultisimCopilot\`:
+its own folder under `Documents\EESimLab\`:
 
 ```
 20261103_141500_Sallen_Key_low_pass/
@@ -137,11 +195,11 @@ its own folder under `Documents\MultisimCopilot\`:
 **CLI:**
 
 ```bat
-mscopilot-cli run brief.docx schematic.png -t "fc must be 1 kHz +/-5%%"
-mscopilot-cli plan brief.docx -o plan.json        & rem AI plan only
-mscopilot-cli simulate plan.json --review          & rem run an edited plan
-mscopilot-cli simulate examples\sallen_key_plan.json --no-multisim   & rem no API key needed
-mscopilot-cli doctor --connect --circuit my.ms14   & rem list Multisim's Automation API
+eesimlab-cli run brief.docx schematic.png -t "fc must be 1 kHz +/-5%%"
+eesimlab-cli plan brief.docx -o plan.json        & rem AI plan only
+eesimlab-cli simulate plan.json --review          & rem run an edited plan
+eesimlab-cli simulate examples\sallen_key_plan.json --no-multisim   & rem no API key needed
+eesimlab-cli doctor --connect --circuit my.ms14   & rem list Multisim's Automation API
 ```
 
 ## How the Multisim integration works (and its limits)
@@ -155,7 +213,7 @@ Multisim offers two automation surfaces, and the app uses both:
   editions that include automation; the COM steps are skipped, and noted in the report, if
   connecting fails. NI's API reference describes analysis methods per version. You can
   call them by adding entries to `extra.com_calls` in
-  `%APPDATA%\MultisimCopilot\config.json`, for example
+  `%APPDATA%\EESimLab\config.json`, for example
   `{"com_calls": [{"target": "circuit", "method": "SomeMethod", "args": []}]}`.
 * **UI automation (pywinauto)** is what produces the screenshots. It works with any
   edition. It opens the circuit, runs **Simulate > Run**, pauses, captures the main window
@@ -182,7 +240,7 @@ before relying on the results.
 cd <your clone of this repository>
 py -3.12 -m pip install -r requirements-dev.txt
 py -3.12 -m pytest
-py -3.12 -m mscopilot            & rem run the app from source
+py -3.12 -m eesimlab            & rem run the app from source
 powershell packaging\build_windows.ps1
 ```
 
@@ -193,18 +251,24 @@ with PyInstaller, bundles ngspice, smoke-tests the CLI and the worker, and uploa
 ## Layout
 
 ```
-mscopilot/
-  main.py            CLI entry point (no args opens the GUI)
-  gui_app.py         tkinter desktop app
+eesimlab/
+  main.py            CLI entry point (no args opens the GUI; `calc` and `drawing` open those tabs)
+  gui_app.py         main window: Simulate & report, EE Calculator, Drawing analysis & schematic
+  ui_common.py       scrollable panes / scrollbar helpers used by every view
+  calc_gui.py        EE Calculator tab + prefix chart window
+  calc_diagram.py    calculator circuit diagrams
+  drawing_gui.py     drawing analysis workspace and schematic editor
+  eecalc/            calculator logic (no GUI): units, core, basic, filters, rlc, transient,
+                     tools, conversions, cexpr (complex expressions), practical, graph, store
+  drawing/           drawing feature logic (no GUI): model, recognize, reconstruct, validate,
+                     solver (MNA), analysis, instruments, catalog, project, report
   config.py          settings, API keys (Credential Manager), tool discovery
   inputs.py          .docx/.txt/.md/images/.cir/.ms14 loading
-  plan.py            plan dataclasses, JSON schema, validation
+  plan.py            simulation plan dataclasses, JSON schema, validation
   ai/                provider adapters (Anthropic, OpenAI, compatible), prompts, plan/review/revise
-  engines/           netlist generation, ngspice runner, data parsing, measurements
+  engines/           ngspice netlist generation, runner, data parsing, measurements
   plots.py           Bode / oscilloscope / multimeter / sweep figures
-  multisim/          COM worker + client, UI automation + screenshots
-  report.py          HTML and Word engineering reports
-  labreport.py       course-format lab report (.docx): schema, template handling, tables, plots
-  labexpr.py         safe expression evaluation + number formatting for lab reports
-  pipeline.py        end-to-end orchestration
+  multisim/          optional Multisim COM worker + client, UI automation + screenshots
+  report.py, labreport.py, labexpr.py   engineering and lab reports
+  pipeline.py        design-brief orchestration
 ```
